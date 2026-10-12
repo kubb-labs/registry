@@ -30,7 +30,7 @@ const plugins = registry.extensions.filter((extension) => extension.kind === 'pl
 1. Publish the package to npm with a `kubb-extension.json` and an `OVERVIEW.md` at the package root, both listed in `files` in `package.json`. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin).
 2. Open a [submission issue](https://github.com/kubb-labs/registry/issues/new?template=submit-extension.yml). In **Source**, paste the npm package name (optionally `name@version`), its npmjs.com page, or the GitHub URL of the repository or package folder. Tick the categories that fit. The first tick is the main one.
 3. Intake opens a review pull request with the record. It pins the version you gave, or the npm `latest` version. Problems with the manifest or the overview are listed in the pull request for the reviewer, and do not stop intake.
-4. A maintainer reviews the package against [REVIEW.md](REVIEW.md), completes the listing, and merges it.
+4. A maintainer reviews the package against [REVIEW.md](REVIEW.md), completes the listing, stamps the approval with `pnpm approve`, and merges it.
 
 Editing the issue runs intake again until a review pull request exists. After that, the reviewer owns the pull request and reads later edits from the issue.
 
@@ -64,8 +64,8 @@ A record lives at `extensions/<owner>/<slug>.json`:
 | `artifact`       | Bot        | The install pin: an exact npm version.                                                                             |
 | `repository.url` | Bot        | The source on GitHub, optionally the package folder.                                                               |
 | `submittedAt`    | Bot        | When the extension was submitted. Never changes.                                                                   |
-| `publishedAt`    | Bot        | When the first version was approved and listed. Never changes.                                                     |
-| `reviewedAt`     | Bot        | When the pinned version was approved. Every bump moves it.                                                         |
+| `publishedAt`    | Reviewer   | When the first version was approved, set by `pnpm approve`. Never changes after that.                              |
+| `reviewedAt`     | Reviewer   | When the pinned version was approved, set by `pnpm approve` on every new pin.                                      |
 | `categories`     | Reviewer   | Slugs from [`categories.json`](categories.json). The first is the main one and replaces the manifest's `category`. |
 | `listing`        | Reviewer   | Optional overrides for `displayName`, `description`, `tags`, and `icon`.                                           |
 
@@ -121,6 +121,7 @@ Requires Node.js 22.18 or later, which runs the TypeScript scripts directly, and
 ```sh
 pnpm install
 pnpm build       # writes dist/ from the records and their pinned npm versions
+pnpm approve     # stamps the changed records as approved now, before merging
 pnpm test
 pnpm typecheck
 pnpm lint

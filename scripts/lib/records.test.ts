@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { applyListing, bumpRecord, compareVersions, recordDateProblems, recordIdFromPath, registryTypeOf, validateManifest, validateRecord } from './records.ts'
+import {
+  applyListing,
+  approveRecord,
+  bumpRecord,
+  compareVersions,
+  recordDateProblems,
+  recordIdFromPath,
+  registryTypeOf,
+  validateManifest,
+  validateRecord,
+} from './records.ts'
 import type { RegistryRecord } from './types.ts'
 
 const known = new Set(['validation', 'types'])
@@ -146,5 +156,17 @@ describe('bump decision', () => {
 
   it.each(['5.4.4', '5.4.3'])('keeps the record when latest is %s', (latest) => {
     expect(bumpRecord(record, latest, new Date())).toBeNull()
+  })
+})
+
+describe('approveRecord', () => {
+  const now = new Date('2026-10-14T09:30:00.500Z')
+
+  it('stamps publishedAt and reviewedAt on a new record', () => {
+    expect(approveRecord(record, false, now)).toStrictEqual({ ...record, publishedAt: '2026-10-14T09:30:00Z', reviewedAt: '2026-10-14T09:30:00Z' })
+  })
+
+  it('keeps publishedAt on a listed record and moves reviewedAt only', () => {
+    expect(approveRecord(record, true, now)).toStrictEqual({ ...record, reviewedAt: '2026-10-14T09:30:00Z' })
   })
 })

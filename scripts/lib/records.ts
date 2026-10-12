@@ -165,3 +165,12 @@ export function bumpRecord(record: RegistryRecord, latest: string, now: Date): R
   if (compareVersions(latest, record.artifact.version) <= 0) return null
   return { ...record, artifact: { ...record.artifact, version: latest }, reviewedAt: toTimestamp(now) }
 }
+
+/**
+ * Stamps a record as approved at `now`: `reviewedAt` always, and `publishedAt` too when the record
+ * is not listed yet. `submittedAt` never changes.
+ */
+export function approveRecord(record: RegistryRecord, listed: boolean, now: Date): RegistryRecord {
+  const timestamp = toTimestamp(now)
+  return { ...record, ...(listed ? {} : { publishedAt: timestamp }), reviewedAt: timestamp }
+}

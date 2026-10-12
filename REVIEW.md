@@ -50,6 +50,10 @@ Inspect the package without running it. Read its files from the npm tarball (`np
 - [ ] Any network access is explained in the overview, along with what is sent and where.
 - [ ] Any permission the extension needs, such as reading environment variables or files outside the spec, is explained in the overview.
 
+## Approve
+
+When every item passes, run `pnpm approve` on the pull request branch, push the commit, and merge. It sets `reviewedAt` on each changed record to now, and `publishedAt` too on a new one, so the dates say when the version was approved rather than when intake or the bump wrote the record.
+
 ## After merging
 
 The publish workflow lists the extension within minutes: on GitHub Pages, at `https://kubb.dev/registry`, and in the next `@kubb/registry` npm release. kubb.dev's catalog shows it after its next deploy. The weekly bump pull request moves its pin to each new `latest` version, and each of those versions needs the same review.
