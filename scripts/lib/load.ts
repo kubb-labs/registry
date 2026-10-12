@@ -39,7 +39,7 @@ export function loadRecords(): Array<LoadedRecord> {
       problems.push(`${EXTENSIONS_DIR}/${path}: ${(err as Error).message}`)
       continue
     }
-    const errors = validateRecord(record, path, known)
+    const errors = validateRecord({ record, relativePath: path, knownCategories: known })
     if (errors.length) {
       problems.push(...errors.map((error) => `${EXTENSIONS_DIR}/${path}: ${error}`))
       continue

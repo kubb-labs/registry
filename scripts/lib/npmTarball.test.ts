@@ -12,7 +12,7 @@ describe('readTarFiles', () => {
       ['package/OVERVIEW.md', '# Overview'],
     ])
 
-    expect(readTarFiles(archive, new Set(['kubb-extension.json', 'OVERVIEW.md']))).toStrictEqual(
+    expect(readTarFiles({ tar: archive, wanted: new Set(['kubb-extension.json', 'OVERVIEW.md']) })).toStrictEqual(
       new Map([
         ['kubb-extension.json', '{"kind":"plugin"}'],
         ['OVERVIEW.md', '# Overview'],
@@ -21,7 +21,7 @@ describe('readTarFiles', () => {
   })
 
   it('skips links', () => {
-    expect(readTarFiles(tar([['package/OVERVIEW.md', '/etc/passwd', '2']]), new Set(['OVERVIEW.md']))).toStrictEqual(new Map())
+    expect(readTarFiles({ tar: tar([['package/OVERVIEW.md', '/etc/passwd', '2']]), wanted: new Set(['OVERVIEW.md']) })).toStrictEqual(new Map())
   })
 })
 
@@ -30,8 +30,8 @@ describe('matchesIntegrity', () => {
     const bytes = new TextEncoder().encode('tarball')
     const integrity = `sha512-${createHash('sha512').update(bytes).digest('base64')}`
 
-    expect(matchesIntegrity(bytes, integrity)).toBe(true)
-    expect(matchesIntegrity(new TextEncoder().encode('tampered'), integrity)).toBe(false)
-    expect(matchesIntegrity(bytes, 'sha1-abc')).toBe(false)
+    expect(matchesIntegrity({ bytes, integrity })).toBe(true)
+    expect(matchesIntegrity({ bytes: new TextEncoder().encode('tampered'), integrity })).toBe(false)
+    expect(matchesIntegrity({ bytes, integrity: 'sha1-abc' })).toBe(false)
   })
 })

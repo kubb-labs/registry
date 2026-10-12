@@ -24,7 +24,7 @@ const GITHUB_USER_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$
 const PACKAGE_PATTERN = /^(?:@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*$/
 
 function fail(message: string): never {
-  writeMarkdown('COMMENT_FILE', `${message}\n\nEdit this issue and intake will run again.\n`)
+  writeMarkdown({ envName: 'COMMENT_FILE', markdown: `${message}\n\nEdit this issue and intake will run again.\n` })
   console.error(message)
   process.exit(1)
 }
@@ -75,7 +75,7 @@ if (existsSync(fromRoot(EXTENSIONS_DIR, relativePath)))
   fail(`\`${id}\` is already in the registry. Its pinned version moves to npm \`latest\` through the weekly bump.`)
 
 const categoryList = loadCategories()
-const categories = parseCategories(fields[FORM_LABELS.categories] ?? '', categoryList)
+const categories = parseCategories({ input: fields[FORM_LABELS.categories] ?? '', categories: categoryList })
 const now = toTimestamp(new Date())
 const record: RegistryRecord = {
   $schema: 'https://kubb.dev/schemas/registry-record.json',
@@ -88,7 +88,7 @@ const record: RegistryRecord = {
   reviewedAt: now,
   ...(categories.length ? { categories } : {}),
 }
-const recordErrors = validateRecord(record, relativePath, new Set(categoryList.map((category) => category.slug)))
+const recordErrors = validateRecord({ record, relativePath, knownCategories: new Set(categoryList.map((category) => category.slug)) })
 if (recordErrors.length) fail(`The record could not be written:\n\n${recordErrors.map((error) => `- ${error}`).join('\n')}`)
 
 const path = fromRoot(EXTENSIONS_DIR, relativePath)
@@ -97,7 +97,7 @@ writeFileSync(path, `${JSON.stringify(record, null, 2)}\n`)
 console.log(`wrote ${EXTENSIONS_DIR}/${relativePath}`)
 
 // Problems reach the reviewer in the pull request. Text from the package stays inside a code block.
-const { problems } = await checkArtifact(record, null, SCOPE)
+const { problems } = await checkArtifact({ record, registryOverview: null, scope: SCOPE })
 const checks = problems.length
   ? [
       '<details><summary>Validation found problems for the reviewer</summary>',
@@ -109,9 +109,9 @@ const checks = problems.length
       '</details>',
     ]
   : ['Validation passed: the manifest and the overview at this version are valid.']
-writeMarkdown(
-  'PR_BODY_FILE',
-  [
+writeMarkdown({
+  envName: 'PR_BODY_FILE',
+  markdown: [
     `Adds \`${resolved.pkg}@${version}\` to the extension registry as \`${id}\`. Submitted by @${author}.`,
     '',
     categories.length ? `Categories: ${categories.map((category) => `\`${category}\``).join(', ')}.` : 'No categories were ticked. The reviewer adds them.',
@@ -121,6 +121,6 @@ writeMarkdown(
     `Review it against [REVIEW.md](${REVIEW_URL}) before merging. Without an \`OVERVIEW.md\` in the package, the reviewer writes \`${EXTENSIONS_DIR}/${id}.md\`.`,
     '',
   ].join('\n'),
-)
+})
 
-setOutput('id', id)
+setOutput({ name: 'id', value: id })

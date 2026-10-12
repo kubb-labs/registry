@@ -39,7 +39,7 @@ if (values.changed) {
   const changed = changedRecordIds(base)
   selected = records.filter(({ record }) => changed.has(record.id))
   const dateProblems = selected.flatMap(({ record, path }) =>
-    recordDateProblems(record, recordAt(base, record.id)).map((problem) => `${EXTENSIONS_DIR}/${path}: ${problem}`),
+    recordDateProblems({ record, listed: recordAt({ commit: base, id: record.id }) }).map((problem) => `${EXTENSIONS_DIR}/${path}: ${problem}`),
   )
   if (dateProblems.length) fail(dateProblems)
   console.log(`✓ ${selected.length} changed record(s) keep their dates`)
@@ -49,7 +49,7 @@ if (values.online) {
   const problems = (
     await Promise.all(
       selected.map(async ({ record, path, registryOverview }) =>
-        (await checkArtifact(record, registryOverview)).problems.map((problem) => `${EXTENSIONS_DIR}/${path}: ${problem}`),
+        (await checkArtifact({ record, registryOverview })).problems.map((problem) => `${EXTENSIONS_DIR}/${path}: ${problem}`),
       ),
     )
   ).flat()

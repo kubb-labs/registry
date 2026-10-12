@@ -22,7 +22,6 @@
   "main": "./dist/index.json",
   "exports": {
     ".": "./dist/index.json",
-    "./categories.json": "./dist/categories.json",
     "./schemas/*": "./dist/schemas/*",
     "./*": "./dist/*"
   },

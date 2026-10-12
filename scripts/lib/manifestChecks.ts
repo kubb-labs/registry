@@ -12,14 +12,27 @@ const isObject = (value: unknown): value is Record<string, unknown> => value != 
 /**
  * Structural equality for JSON values.
  */
-export function deepEqual(a: unknown, b: unknown): boolean {
+export function deepEqual({ a, b }: { a: unknown; b: unknown }): boolean {
   if (a === b) return true
   if (Array.isArray(a) || Array.isArray(b)) {
-    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, index) => deepEqual(item, b[index]))
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, index) => deepEqual({ a: item, b: b[index] }))
   }
   if (!isObject(a) || !isObject(b)) return false
   const keys = Object.keys(a)
-  return keys.length === Object.keys(b).length && keys.every((key) => Object.hasOwn(b, key) && deepEqual(a[key], b[key]))
+  return keys.length === Object.keys(b).length && keys.every((key) => Object.hasOwn(b, key) && deepEqual({ a: a[key], b: b[key] }))
+}
+
+function exportProblems(exportName: unknown): Array<string> {
+  if (typeof exportName !== 'string' || !exportName) return ['export is missing']
+  return IDENTIFIER.test(exportName) ? [] : [`export "${exportName}" is not a JavaScript identifier`]
+}
+
+function compatibilityProblems(compatibility: unknown): Array<string> {
+  if (compatibility === undefined) return []
+  if (!isObject(compatibility)) return ['compatibility must be an object']
+  return Object.keys(compatibility)
+    .filter((key) => !COMPATIBILITY_KEYS.has(key))
+    .map((key) => `compatibility.${key} is unknown; use "kubb" or "node"`)
 }
 
 /**
@@ -35,15 +48,7 @@ export function manifestProblems(manifest: unknown): Array<string> {
 
   if (typeof kind !== 'string' || !KINDS.has(kind)) problems.push('kind must be "plugin", "adapter", or "parser"')
   if (typeof name !== 'string' || !name) problems.push('name is missing')
-  if (typeof exportName !== 'string' || !exportName) problems.push('export is missing')
-  else if (!IDENTIFIER.test(exportName)) problems.push(`export "${exportName}" is not a JavaScript identifier`)
-
-  if (compatibility !== undefined) {
-    if (!isObject(compatibility)) problems.push('compatibility must be an object')
-    else
-      for (const key of Object.keys(compatibility).filter((key) => !COMPATIBILITY_KEYS.has(key)))
-        problems.push(`compatibility.${key} is unknown; use "kubb" or "node"`)
-  }
+  problems.push(...exportProblems(exportName), ...compatibilityProblems(compatibility))
 
   if (options !== undefined && !Array.isArray(options)) problems.push('options must be an array')
   const seen = new Set<string>()
@@ -63,7 +68,7 @@ export function manifestProblems(manifest: unknown): Array<string> {
       problems.push(`${label} is a select without choices`)
       continue
     }
-    if ('default' in option && !choices.some((choice) => isObject(choice) && deepEqual(choice.value, option.default))) {
+    if ('default' in option && !choices.some((choice) => isObject(choice) && deepEqual({ a: choice.value, b: option.default }))) {
       problems.push(`${label} has a default that is not one of its choices`)
     }
   }

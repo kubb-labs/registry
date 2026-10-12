@@ -70,7 +70,7 @@ export function parseSource(input: string): { source: SubmissionSource } | { err
  * Reads the ticked categories, in the order the form lists them, so the first tick is the main one.
  * Labels that are not in `categories.json` are ignored.
  */
-export function parseCategories(input: string, categories: Array<RegistryCategory>): Array<string> {
+export function parseCategories({ input, categories }: { input: string; categories: Array<RegistryCategory> }): Array<string> {
   const ticked = new Set(
     input
       .split('\n')

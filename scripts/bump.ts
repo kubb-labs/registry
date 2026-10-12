@@ -10,7 +10,7 @@ import { rmSync, writeFileSync } from 'node:fs'
 import { setOutput, writeMarkdown } from './lib/actions.ts'
 import { checkArtifact } from './lib/check.ts'
 import { loadRecords } from './lib/load.ts'
-import { fetchNpmVersions } from './lib/npm.ts'
+import { fetchNpmLatest } from './lib/npm.ts'
 import { EXTENSIONS_DIR, fromRoot } from './lib/paths.ts'
 import { bumpRecord } from './lib/records.ts'
 
@@ -19,15 +19,14 @@ const bumped: Array<string> = []
 const skipped: Array<string> = []
 
 for (const { record, path, registryOverview } of loadRecords()) {
-  const npm = await fetchNpmVersions({ pkg: record.artifact.package, scope: 'bump' })
-  const latest = npm?.distTags.latest
+  const latest = await fetchNpmLatest({ pkg: record.artifact.package, scope: 'bump' })
   if (!latest) {
     skipped.push(`- \`${record.id}\`: npm has no \`latest\` version`)
     continue
   }
-  const next = bumpRecord(record, latest, now)
+  const next = bumpRecord({ record, latest, now })
   if (!next) continue
-  const { problems, authorOverview } = await checkArtifact(next, registryOverview, 'bump')
+  const { problems, authorOverview } = await checkArtifact({ record: next, registryOverview, scope: 'bump' })
   if (problems.length) {
     skipped.push(`- \`${record.id}\`: ${latest} not pinned (${problems.join('; ').replaceAll('`', "'")})`)
     continue
@@ -48,5 +47,5 @@ const summary = [
   ...(skipped.length ? ['', '### Not bumped', ...skipped] : []),
   '',
 ].join('\n')
-writeMarkdown('SUMMARY_FILE', summary)
-setOutput('count', String(bumped.length))
+writeMarkdown({ envName: 'SUMMARY_FILE', markdown: summary })
+setOutput({ name: 'count', value: String(bumped.length) })

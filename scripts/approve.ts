@@ -20,8 +20,8 @@ const changed = changedRecordIds(base)
 const now = new Date()
 
 for (const { record, path } of loadRecords().filter(({ record }) => changed.has(record.id))) {
-  const listed = recordAt(base, record.id) !== undefined
-  writeFileSync(fromRoot(EXTENSIONS_DIR, path), `${JSON.stringify(approveRecord(record, listed, now), null, 2)}\n`)
+  const listed = recordAt({ commit: base, id: record.id }) !== undefined
+  writeFileSync(fromRoot(EXTENSIONS_DIR, path), `${JSON.stringify(approveRecord({ record, listed, now }), null, 2)}\n`)
   console.log(`approved ${record.id}${listed ? '' : ' (first version)'}`)
 }
 if (!changed.size) console.log('no changed records to approve')

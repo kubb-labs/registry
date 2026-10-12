@@ -27,18 +27,22 @@ const official: RegistryRecord = {
 const manifest = { kind: 'plugin', name: 'plugin-x', export: 'pluginX', displayName: 'X', description: 'Generates X.', category: 'types' }
 
 /** The gzipped tarball and the packument npm answers for one version. */
-function publish(pkg: string, version: string, files: Array<[string, string]>) {
+function publish({ pkg, version, files }: { pkg: string; version: string; files: Array<[string, string]> }) {
   const tarball = gzipSync(tar(files.map(([name, content]) => [`package/${name}`, content])))
   const url = `https://registry.npmjs.org/${pkg}/-/${version}.tgz`
   const integrity = `sha512-${createHash('sha512').update(tarball).digest('base64')}`
   return { url, tarball, packument: { versions: { [version]: { dist: { tarball: url, integrity } } } } }
 }
 
-const x = publish('@acme/kubb-plugin-x', '1.2.0', [
-  ['kubb-extension.json', JSON.stringify(manifest)],
-  ['OVERVIEW.md', 'Generates X.\n'],
-])
-const old = publish('@kubb/plugin-old', '5.0.0', [['package.json', '{}']])
+const x = publish({
+  pkg: '@acme/kubb-plugin-x',
+  version: '1.2.0',
+  files: [
+    ['kubb-extension.json', JSON.stringify(manifest)],
+    ['OVERVIEW.md', 'Generates X.\n'],
+  ],
+})
+const old = publish({ pkg: '@kubb/plugin-old', version: '5.0.0', files: [['package.json', '{}']] })
 
 function answer(url: string): unknown {
   if (url === 'https://registry.npmjs.org/@acme/kubb-plugin-x') return x.packument

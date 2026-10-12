@@ -1,5 +1,3 @@
-// Test helpers. Imported by tests only.
-
 /** Builds an uncompressed tar archive from `[path, content, type]` entries. */
 export function tar(entries: Array<[string, string, string?]>): Uint8Array {
   const blocks: Array<Uint8Array> = []

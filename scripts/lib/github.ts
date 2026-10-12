@@ -12,7 +12,7 @@ const headers = {
 /**
  * The star count of a GitHub repository (`<owner>/<repo>`), or undefined when GitHub cannot be read.
  */
-export async function fetchRepoStats({ slug, scope }: { slug: string; scope: string }) {
+export async function fetchRepoStars({ slug, scope }: { slug: string; scope: string }): Promise<number | undefined> {
   const data = await fetchJson<{ stargazers_count?: number }>({ url: `${GITHUB_API}/repos/${slug}`, headers, scope })
-  return data ? { stars: data.stargazers_count ?? 0 } : undefined
+  return data ? (data.stargazers_count ?? 0) : undefined
 }

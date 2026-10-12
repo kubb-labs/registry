@@ -8,20 +8,10 @@ export async function fetchNpmDownloads({ pkg, period, scope }: { pkg: string; p
 }
 
 /**
- * The published versions and dist-tags of a package, or null when npm has no such package or
+ * The version a package's `latest` dist-tag points at, or null when npm has no such package or
  * could not be reached.
  */
-export async function fetchNpmVersions({
-  pkg,
-  scope,
-}: {
-  pkg: string
-  scope: string
-}): Promise<{ versions: Array<string>; distTags: Record<string, string> } | null> {
-  const data = await fetchJson<{ 'dist-tags'?: Record<string, string>; versions?: Record<string, unknown> }>({
-    url: `https://registry.npmjs.org/${pkg}`,
-    scope,
-  })
-  if (!data?.versions) return null
-  return { versions: Object.keys(data.versions), distTags: data['dist-tags'] ?? {} }
+export async function fetchNpmLatest({ pkg, scope }: { pkg: string; scope: string }): Promise<string | null> {
+  const data = await fetchJson<{ 'dist-tags'?: Record<string, string> }>({ url: `https://registry.npmjs.org/${pkg}`, scope })
+  return data?.['dist-tags']?.latest ?? null
 }

@@ -1,10 +1,10 @@
 import { checkArtifact } from './check.ts'
-import { fetchRepoStats } from './github.ts'
+import { fetchRepoStars } from './github.ts'
 import type { LoadedRecord } from './load.ts'
 import { fetchNpmDownloads } from './npm.ts'
 import { log, warn } from './paths.ts'
 import { applyListing, parseRepositoryUrl, registryTypeOf, toTimestamp } from './records.ts'
-import type { RegistryDetail, RegistryEntry, RegistryIndex } from './types.ts'
+import type { RegistryDetail, RegistryEntry, RegistryIndex, RegistryRecord } from './types.ts'
 
 const SCOPE = 'build'
 
@@ -18,7 +18,7 @@ function repoSlug(url: string): string | undefined {
  * Monthly and weekly npm downloads and GitHub stars. Unavailable numbers are left out, so an
  * unreachable API never reads as zero.
  */
-async function fetchStats({ record }: LoadedRecord, stars: Map<string, number | undefined>): Promise<RegistryEntry['stats']> {
+async function fetchStats({ record, stars }: { record: RegistryRecord; stars: Map<string, number | undefined> }): Promise<RegistryEntry['stats']> {
   const pkg = record.artifact.package
   const [downloads, weekly] = await Promise.all([
     fetchNpmDownloads({ pkg, period: 'last-month', scope: SCOPE }),
@@ -29,16 +29,24 @@ async function fetchStats({ record }: LoadedRecord, stars: Map<string, number | 
   return Object.values(stats).some((value) => value !== undefined) ? stats : undefined
 }
 
-async function resolveRecord(loaded: LoadedRecord, stars: Map<string, number | undefined>): Promise<RegistryDetail | null> {
-  const { record, registryOverview } = loaded
-  const { manifest, authorOverview, problems } = await checkArtifact(record, registryOverview, SCOPE)
-  for (const problem of problems) warn(SCOPE, `${record.id}: ${problem}`)
+async function resolveRecord({
+  loaded: { record, registryOverview },
+  stars,
+}: {
+  loaded: LoadedRecord
+  stars: Map<string, number | undefined>
+}): Promise<RegistryDetail | null> {
+  const { manifest, authorOverview, problems } = await checkArtifact({ record, registryOverview, scope: SCOPE })
+  for (const problem of problems) warn({ scope: SCOPE, message: `${record.id}: ${problem}` })
   if (!manifest) {
-    warn(SCOPE, `${record.id}: ${record.artifact.package}@${record.artifact.version} ships no valid kubb-extension.json, left out of the index`)
+    warn({
+      scope: SCOPE,
+      message: `${record.id}: ${record.artifact.package}@${record.artifact.version} ships no valid kubb-extension.json, left out of the index`,
+    })
     return null
   }
 
-  const merged = applyListing(manifest, record)
+  const merged = applyListing({ manifest, record })
   const entry: RegistryEntry = {
     id: record.id,
     kind: merged.kind,
@@ -50,7 +58,7 @@ async function resolveRecord(loaded: LoadedRecord, stars: Map<string, number | u
     publishedAt: record.publishedAt,
     reviewedAt: record.reviewedAt,
   }
-  const stats = await fetchStats(loaded, stars)
+  const stats = await fetchStats({ record, stars })
   if (stats) entry.stats = stats
   return { ...entry, overview: authorOverview ?? registryOverview }
 }
@@ -60,11 +68,11 @@ async function resolveRecord(loaded: LoadedRecord, stars: Map<string, number | u
  * Records whose version ships no valid manifest are left out, with a warning.
  */
 export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ index: RegistryIndex; details: Array<RegistryDetail> }> {
-  log(SCOPE, `reading ${records.length} pinned npm versions…`)
+  log({ scope: SCOPE, message: `reading ${records.length} pinned npm versions…` })
   const slugs = new Set(records.flatMap(({ record }) => repoSlug(record.repository.url) ?? []))
-  const stars = new Map(await Promise.all([...slugs].map(async (slug) => [slug, (await fetchRepoStats({ slug, scope: SCOPE }))?.stars] as const)))
+  const stars = new Map(await Promise.all([...slugs].map(async (slug) => [slug, await fetchRepoStars({ slug, scope: SCOPE })] as const)))
 
-  const details = (await Promise.all(records.map((loaded) => resolveRecord(loaded, stars)))).filter((detail) => detail !== null)
+  const details = (await Promise.all(records.map((loaded) => resolveRecord({ loaded, stars })))).filter((detail) => detail !== null)
   details.sort((a, b) => a.id.localeCompare(b.id))
   const index: RegistryIndex = {
     version: 1,

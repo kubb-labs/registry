@@ -9,7 +9,7 @@ const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms))
  * `fetch` with a timeout and two retries on network errors and 5xx answers. Throws on any other
  * non-2xx answer.
  */
-async function request(url: string, { headers, timeout = 10_000 }: { headers?: Record<string, string>; timeout?: number } = {}): Promise<Response> {
+async function request({ url, headers, timeout = 10_000 }: { url: string; headers?: Record<string, string>; timeout?: number }): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
     const last = attempt >= RETRIES
     let response: Response
@@ -31,9 +31,9 @@ async function request(url: string, { headers, timeout = 10_000 }: { headers?: R
  */
 export async function fetchJson<T>({ url, headers, scope = 'http' }: { url: string; headers?: Record<string, string>; scope?: string }): Promise<T | null> {
   try {
-    return (await (await request(url, { headers })).json()) as T
+    return (await (await request({ url, headers })).json()) as T
   } catch (err) {
-    warn(scope, (err as Error).message)
+    warn({ scope, message: (err as Error).message })
     return null
   }
 }
@@ -41,6 +41,6 @@ export async function fetchJson<T>({ url, headers, scope = 'http' }: { url: stri
 /**
  * The bytes at `url`. Throws when they cannot be read.
  */
-export async function fetchBytes(url: string, { timeout }: { timeout?: number } = {}): Promise<Uint8Array> {
-  return new Uint8Array(await (await request(url, { timeout })).arrayBuffer())
+export async function fetchBytes({ url, timeout }: { url: string; timeout?: number }): Promise<Uint8Array> {
+  return new Uint8Array(await (await request({ url, timeout })).arrayBuffer())
 }

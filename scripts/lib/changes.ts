@@ -26,7 +26,7 @@ export function changedRecordIds(commit: string): Set<string> {
 /**
  * The record as listed at `commit`, or `undefined` when it is new.
  */
-export function recordAt(commit: string, id: string): Record<string, unknown> | undefined {
+export function recordAt({ commit, id }: { commit: string; id: string }): Record<string, unknown> | undefined {
   const path = `${EXTENSIONS_DIR}/${id}.json`
   if (!git(['ls-tree', '--name-only', commit, '--', path])) return undefined
   return JSON.parse(git(['show', `${commit}:./${path}`])) as Record<string, unknown>

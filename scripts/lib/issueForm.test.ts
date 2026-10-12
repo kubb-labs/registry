@@ -53,7 +53,7 @@ describe('parseSource', () => {
 
 describe('parseCategories', () => {
   it('keeps ticked known categories in the form order', () => {
-    expect(parseCategories('- [x] Client\n- [X] Validation\n- [ ] Types\n- [x] Unknown', categories)).toStrictEqual(['validation', 'client'])
+    expect(parseCategories({ input: '- [x] Client\n- [X] Validation\n- [ ] Types\n- [x] Unknown', categories })).toStrictEqual(['validation', 'client'])
   })
 
   it('lists every category of categories.json in the issue form, in the same order', () => {

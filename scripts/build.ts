@@ -13,9 +13,12 @@ import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { buildRegistry } from './lib/build.ts'
 import { loadRecords } from './lib/load.ts'
-import { DIST_DIR, fromRoot, log } from './lib/paths.ts'
+import { fromRoot, log } from './lib/paths.ts'
 
-function writeJson(relativePath: string, data: unknown): void {
+/** The static protocol, which GitHub Pages serves and the npm package ships. */
+const DIST_DIR = 'dist'
+
+function writeJson({ relativePath, data }: { relativePath: string; data: unknown }): void {
   const path = fromRoot(DIST_DIR, relativePath)
   mkdirSync(dirname(path), { recursive: true })
   writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`)
@@ -25,11 +28,11 @@ const records = loadRecords()
 const { index, details } = await buildRegistry(records)
 
 rmSync(fromRoot(DIST_DIR), { recursive: true, force: true })
-writeJson('index.json', index)
-for (const detail of details) writeJson(`${detail.id}.json`, detail)
+writeJson({ relativePath: 'index.json', data: index })
+for (const detail of details) writeJson({ relativePath: `${detail.id}.json`, data: detail })
 cpSync(fromRoot('categories.json'), fromRoot(DIST_DIR, 'categories.json'))
 cpSync(fromRoot('schemas'), fromRoot(DIST_DIR, 'schemas'), { recursive: true })
 // GitHub Pages serves the files as they are, without Jekyll.
 writeFileSync(fromRoot(DIST_DIR, '.nojekyll'), '')
 
-log('build', `wrote ${details.length} of ${records.length} extensions to ${DIST_DIR}/`)
+log({ scope: 'build', message: `wrote ${details.length} of ${records.length} extensions to ${DIST_DIR}/` })
