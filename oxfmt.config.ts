@@ -8,5 +8,6 @@ export default defineConfig({
   semi: false,
   singleQuote: true,
   endOfLine: 'lf',
-  ignorePatterns: ['dist/**', 'node_modules/**', 'pnpm-lock.yaml'],
+  // Records are written by the submit, bump, and approve scripts with JSON.stringify, so they keep that layout.
+  ignorePatterns: ['dist/**', 'node_modules/**', 'pnpm-lock.yaml', 'extensions/**/*.json'],
 })
