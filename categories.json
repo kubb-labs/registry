@@ -1,0 +1,14 @@
+[
+  { "slug": "types", "label": "Types", "description": "Generate TypeScript types and interfaces." },
+  { "slug": "validation", "label": "Validation", "description": "Validate data at runtime with schemas." },
+  { "slug": "client", "label": "Client", "description": "Generate HTTP clients that call the API." },
+  { "slug": "framework", "label": "Framework", "description": "Generate hooks and composables for UI frameworks." },
+  { "slug": "mocks", "label": "Mocks", "description": "Generate mock data and mock servers." },
+  { "slug": "testing", "label": "Testing", "description": "Generate tests and test helpers." },
+  { "slug": "documentation", "label": "Documentation", "description": "Generate API documentation." },
+  { "slug": "ai", "label": "AI", "description": "Expose the API to AI agents and tools." },
+  { "slug": "output", "label": "Output", "description": "Shape the generated files, such as barrel files." },
+  { "slug": "openapi", "label": "OpenAPI", "description": "Read OpenAPI and Swagger specs." },
+  { "slug": "typescript", "label": "TypeScript", "description": "Print generated code as TypeScript." },
+  { "slug": "docs", "label": "Docs", "description": "Print generated code as Markdown." }
+]

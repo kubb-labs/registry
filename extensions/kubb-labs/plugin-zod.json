@@ -1,0 +1,17 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "kubb-labs/plugin-zod",
+  "artifact": {
+    "kind": "npm",
+    "package": "@kubb/plugin-zod",
+    "version": "5.4.4"
+  },
+  "repository": {
+    "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-zod"
+  },
+  "submittedAt": "2026-10-12T20:11:53Z",
+  "submittedBy": "stijnvanhulle",
+  "publishedAt": "2026-10-12T20:11:53Z",
+  "reviewedAt": "2026-10-12T20:11:53Z",
+  "categories": ["validation"]
+}

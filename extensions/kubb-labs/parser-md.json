@@ -1,0 +1,17 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "kubb-labs/parser-md",
+  "artifact": {
+    "kind": "npm",
+    "package": "@kubb/parser-md",
+    "version": "5.8.0"
+  },
+  "repository": {
+    "url": "https://github.com/kubb-labs/kubb/tree/main/packages/parser-md"
+  },
+  "submittedAt": "2026-10-12T20:11:53Z",
+  "submittedBy": "stijnvanhulle",
+  "publishedAt": "2026-10-12T20:11:53Z",
+  "reviewedAt": "2026-10-12T20:11:53Z",
+  "categories": ["docs"]
+}

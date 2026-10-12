@@ -1,0 +1,17 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "kubb-labs/plugin-fetch",
+  "artifact": {
+    "kind": "npm",
+    "package": "@kubb/plugin-fetch",
+    "version": "5.5.7"
+  },
+  "repository": {
+    "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-fetch"
+  },
+  "submittedAt": "2026-10-12T20:11:53Z",
+  "submittedBy": "stijnvanhulle",
+  "publishedAt": "2026-10-12T20:11:53Z",
+  "reviewedAt": "2026-10-12T20:11:53Z",
+  "categories": ["client"]
+}
