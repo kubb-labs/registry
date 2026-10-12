@@ -1,0 +1,58 @@
+{
+  "name": "@kubb/registry",
+  "version": "0.0.0",
+  "description": "The Kubb extension registry: reviewed, pinned plugins, adapters, and parsers, published as static JSON for kubb.dev, Kubb Studio, and the Kubb CLI.",
+  "keywords": [
+    "extensions",
+    "kubb",
+    "plugins",
+    "registry"
+  ],
+  "homepage": "https://kubb.dev/extensions",
+  "license": "MIT",
+  "author": "stijnvanhulle",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kubb-labs/registry.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.json",
+  "exports": {
+    ".": "./dist/index.json",
+    "./categories.json": "./dist/categories.json",
+    "./schemas/*": "./dist/schemas/*",
+    "./*": "./dist/*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "bump": "node scripts/bump.ts",
+    "format": "oxfmt -c oxfmt.config.ts .",
+    "format:check": "oxfmt -c oxfmt.config.ts --check .",
+    "lint": "oxlint -c oxlint.config.ts scripts",
+    "submit": "node scripts/submit.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "validate": "node scripts/validate.ts"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3",
+    "yaml": "^2.9.1"
+  },
+  "engines": {
+    "node": "^22.22.0"
+  },
+  "packageManager": "pnpm@12.3.4"
+}
