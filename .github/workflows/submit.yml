@@ -67,15 +67,20 @@ jobs:
           body-path: ${{ runner.temp }}/submit-pr.md
           labels: submission
 
+      # Intake failures leave their own comment in COMMENT_FILE. A pull request that could not be
+      # opened is reported here, so the author is never told an empty link is ready.
       - name: Comment on the issue
         if: always() && (steps.submit.outcome == 'success' || steps.submit.outcome == 'failure')
         env:
           COMMENT_FILE: ${{ runner.temp }}/submit-comment.md
           SUBMIT_OUTCOME: ${{ steps.submit.outcome }}
+          PR_OUTCOME: ${{ steps.pr.outcome }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
           PR_URL: ${{ steps.pr.outputs.pull-request-url }}
         run: |
-          if [ "$SUBMIT_OUTCOME" = "success" ]; then
+          if [ "$SUBMIT_OUTCOME" = "success" ] && [ "$PR_OUTCOME" = "success" ] && [ -n "$PR_URL" ]; then
             printf '@%s, your submission is ready for review: %s\n' "$ISSUE_AUTHOR" "$PR_URL" > "$COMMENT_FILE"
+          elif [ "$SUBMIT_OUTCOME" = "success" ]; then
+            printf '@%s, the record is valid, but the review pull request could not be opened. A maintainer will re-run intake.\n' "$ISSUE_AUTHOR" > "$COMMENT_FILE"
           fi
           gh issue comment "$ISSUE_NUMBER" --body-file "$COMMENT_FILE"
