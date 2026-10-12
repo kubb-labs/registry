@@ -1,0 +1,81 @@
+name: Submit
+
+on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    name: Open the review pull request
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'kubb-labs' && github.event.issue.state == 'open' && contains(github.event.issue.labels.*.name, 'submission')
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+    steps:
+      # Once a review pull request exists, the reviewer owns it and reads later edits from the issue.
+      - name: Check for an existing pull request
+        id: existing
+        run: |
+          gh label create submission --color 0E8A16 --description "Extension submission" --force
+          url=$(gh pr list --head "submission/$ISSUE_NUMBER" --state all --json url --jq '.[0].url // ""')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Check out code
+        if: steps.existing.outputs.url == ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Tools
+        if: steps.existing.outputs.url == ''
+        uses: kubb-labs/config/.github/setup@f1710c1732b46c33bf590d8ff1ac59bf17a53247 # main
+        with:
+          cache: 'false'
+
+      # The issue body is untrusted. It reaches the script only through the environment, and the
+      # script validates every field before using it. No extension code is installed or run.
+      - name: Write the record
+        id: submit
+        if: steps.existing.outputs.url == ''
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          COMMENT_FILE: ${{ runner.temp }}/submit-comment.md
+          PR_BODY_FILE: ${{ runner.temp }}/submit-pr.md
+        run: pnpm submit
+
+      - name: Open the pull request
+        id: pr
+        if: steps.submit.outcome == 'success'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: submission/${{ github.event.issue.number }}
+          add-paths: extensions/**
+          commit-message: 'feat: add ${{ steps.submit.outputs.id }}'
+          title: 'feat: add ${{ steps.submit.outputs.id }}'
+          body-path: ${{ runner.temp }}/submit-pr.md
+          labels: submission
+
+      - name: Comment on the issue
+        if: always() && (steps.submit.outcome == 'success' || steps.submit.outcome == 'failure')
+        env:
+          COMMENT_FILE: ${{ runner.temp }}/submit-comment.md
+          SUBMIT_OUTCOME: ${{ steps.submit.outcome }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          PR_URL: ${{ steps.pr.outputs.pull-request-url }}
+        run: |
+          if [ "$SUBMIT_OUTCOME" = "success" ]; then
+            printf '@%s, your submission is ready for review: %s\n' "$ISSUE_AUTHOR" "$PR_URL" > "$COMMENT_FILE"
+          fi
+          gh issue comment "$ISSUE_NUMBER" --body-file "$COMMENT_FILE"

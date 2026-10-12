@@ -1,0 +1,47 @@
+name: Submit an extension
+description: List a Kubb plugin, adapter, or parser in the Kubb extension registry.
+title: 'submit: '
+labels: ['submission']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Intake opens a pull request with the record. A maintainer reviews the package against [REVIEW.md](https://github.com/kubb-labs/registry/blob/main/REVIEW.md) before it is listed.
+
+        Ship a `kubb-extension.json` and an `OVERVIEW.md` at the package root. See the [registry README](https://github.com/kubb-labs/registry#submit-an-extension).
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: >-
+        Where the extension lives: an npm package name, optionally with an exact version
+        (`@acme/kubb-plugin-graphql@1.2.3`), its npmjs.com page, or a GitHub repository URL,
+        including one to the package folder. Without a version, the npm `latest` version is used.
+      placeholder: 'https://github.com/acme/kubb-plugins/tree/main/packages/graphql'
+    validations:
+      required: true
+  - type: checkboxes
+    id: categories
+    attributes:
+      label: Categories
+      description: What does it do? Tick everything that fits. The first tick is the main one.
+      options:
+        - label: Types
+        - label: Validation
+        - label: Client
+        - label: Framework
+        - label: Mocks
+        - label: Testing
+        - label: Documentation
+        - label: AI
+        - label: Output
+        - label: OpenAPI
+        - label: TypeScript
+        - label: Docs
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything the reviewer should know.
+    validations:
+      required: false

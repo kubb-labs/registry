@@ -1,0 +1,48 @@
+name: Bump
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays at 06:17 UTC.
+    - cron: '17 6 * * 1'
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Bump pinned versions
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'kubb-labs'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Tools
+        uses: kubb-labs/config/.github/setup@f1710c1732b46c33bf590d8ff1ac59bf17a53247 # main
+        with:
+          cache: 'false'
+
+      - name: Move pins to npm latest
+        id: bump
+        env:
+          SUMMARY_FILE: ${{ runner.temp }}/bump.md
+        run: pnpm bump
+
+      - name: Open the pull request
+        if: steps.bump.outputs.count != '0'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: bump
+          add-paths: extensions/**
+          commit-message: 'chore: bump pinned versions'
+          title: 'chore: bump pinned versions'
+          body-path: ${{ runner.temp }}/bump.md
+          delete-branch: true
