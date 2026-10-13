@@ -28,11 +28,27 @@ async function fetchCount({ url, key, headers }: { url: string; key: string; hea
   return data ? (data[key] ?? 0) : undefined
 }
 
+type Downloads = { downloads?: number; weekly?: number }
+
+/**
+ * Downloads over the last 30 days and over the last 7 of them, from one npm request. Both are
+ * undefined when npm cannot be read.
+ */
+async function fetchDownloads(pkg: string): Promise<Downloads> {
+  const data = await fetchJson<{ downloads?: Array<{ downloads: number }> }>({ url: `https://api.npmjs.org/downloads/range/last-month/${pkg}`, scope })
+  if (!data) return {}
+  const days = (data.downloads ?? []).map((day) => day.downloads)
+  const total = (counts: Array<number>) => counts.reduce((sum, count) => sum + count, 0)
+  return { downloads: total(days), weekly: total(days.slice(-7)) }
+}
+
 async function resolveRecord({
   loaded: { record, registryOverview },
+  downloads,
   stars,
 }: {
   loaded: LoadedRecord
+  downloads: Map<string, Downloads>
   stars: Map<string, number | undefined>
 }): Promise<RegistryDetail | null> {
   const { package: pkg, version } = record.artifact
@@ -43,11 +59,8 @@ async function resolveRecord({
     return null
   }
 
-  const [downloads, weekly] = await Promise.all(
-    ['last-month', 'last-week'].map((period) => fetchCount({ url: `https://api.npmjs.org/downloads/point/${period}/${pkg}`, key: 'downloads' })),
-  )
   const slug = repoSlug(record.repository.url)
-  const stats = { downloads, weekly, stars: slug ? stars.get(slug) : undefined }
+  const stats = { ...downloads.get(pkg), stars: slug ? stars.get(slug) : undefined }
   const merged = applyListing({ manifest, record })
   return {
     id: record.id,
@@ -80,8 +93,11 @@ export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ ind
     slugs.map((slug) => fetchCount({ url: `https://api.github.com/repos/${slug}`, key: 'stargazers_count', headers: githubHeaders })),
   )
   const stars = new Map(slugs.map((slug, index) => [slug, counts[index]]))
+  // One package at a time, since npm rate-limits its downloads API.
+  const downloads = new Map<string, Downloads>()
+  for (const { record } of records) downloads.set(record.artifact.package, await fetchDownloads(record.artifact.package))
 
-  const details = (await Promise.all(records.map((loaded) => resolveRecord({ loaded, stars })))).filter((detail) => detail !== null)
+  const details = (await Promise.all(records.map((loaded) => resolveRecord({ loaded, downloads, stars })))).filter((detail) => detail !== null)
   details.sort((a, b) => a.id.localeCompare(b.id))
   const index: RegistryIndex = {
     version: 1,

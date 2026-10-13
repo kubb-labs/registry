@@ -5,15 +5,16 @@ const RETRIES = 2
 type Target = { url: string; headers?: Record<string, string> }
 
 /**
- * `fetch` with a timeout and two retries on network errors and 5xx answers. Throws on any other
- * non-2xx answer.
+ * `fetch` with a timeout and two retries on network errors, 5xx answers, and 429 answers. A 429
+ * waits longer, since npm rate-limits its downloads API. Throws on any other non-2xx answer.
  */
 async function request({ url, headers, timeout = 10_000, attempt = 0 }: Target & { timeout?: number; attempt?: number }): Promise<Response> {
   const response = await fetch(url, { headers, signal: AbortSignal.timeout(timeout) }).catch((err: unknown) => err)
   const answered = response instanceof Response
   if (answered && response.ok) return response
-  if (attempt >= RETRIES || (answered && response.status < 500)) throw answered ? new Error(`${url} answered ${response.status}`) : response
-  await sleep(250 * (attempt + 1))
+  const limited = answered && response.status === 429
+  if (attempt >= RETRIES || (answered && response.status < 500 && !limited)) throw answered ? new Error(`${url} answered ${response.status}`) : response
+  await sleep((limited ? 2_000 : 250) * (attempt + 1))
   return request({ url, headers, timeout, attempt: attempt + 1 })
 }
 
