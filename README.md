@@ -10,7 +10,7 @@ kubb.dev clones this repository on every deploy, builds the records into static 
 
 ## Submit an extension
 
-1. Publish the package to npm with a `kubb-extension.json` at the package root and a `docs/` folder with `overview.md`, plus an optional `options.md` and `guides/` (see [Docs](#docs)). List both in `files` in `package.json`. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin).
+1. Publish the package to npm with a `kubb-extension.json` at the package root and a `docs/` folder with `overview.md`, plus an optional `options.md` and `guides/` (see [Docs](#docs)). List `kubb-extension.json` and `docs` in `files` in `package.json`. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin).
 2. Open a [submission issue](https://github.com/kubb-labs/registry/issues/new?template=submit-extension.yml). In **Source**, paste the npm package name (optionally `name@version`), its npmjs.com page, or the GitHub URL of the repository or package folder. Tick the categories that fit. The first tick is the main one.
 3. Intake opens a review pull request with the record. It pins the version you gave, or the npm `latest` version. Problems with the manifest or the docs are listed in the pull request for the reviewer, and do not stop intake.
 4. A maintainer reviews the package against [REVIEW.md](REVIEW.md), completes the listing, stamps the approval with `pnpm approve`, and merges it.
@@ -65,11 +65,11 @@ kubb.dev builds an extension's pages from the Markdown its pinned npm version sh
 | `docs/options.md`     | `/extensions/<owner>/<slug>/options`                     | No       |
 | `docs/guides/<id>.md` | `/extensions/<owner>/<slug>/guides/<id>`                 | No       |
 
-Each file starts with a `# Title` line. The first paragraph after it is the description that guide cards, search, and page metadata show. Files have no YAML front matter. A guide's id is its file name without `.md`, in kebab case. Guides are listed in file name order, at most 50. Each file is at most 256 KiB.
+Each file starts with a `# Title` line. The first paragraph after it is the description that guide cards, search, and page metadata show. Files have no frontmatter. Name each guide file in kebab case, such as `base-url.md`. Its id is the file name without `.md`, and guides appear in file name order, at most 50. Each file is at most 256 KiB.
 
 Write plain Markdown with absolute links. Code fences can carry a title, such as ` ```typescript [kubb.config.ts] `. These also render: the `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, and `> [!WARNING]` callouts, and the components `::code-group`, `::field-group` with `:::field`, `::steps`, `::code-collapse`, and `::tabs` with `:::tabs-item`. Raw HTML, `<!--@include`, twoslash, and other components do not render. The [protocol](PROTOCOL.md#render-the-markdown) has the rules clients follow.
 
-When the pinned version ships no `docs/overview.md`, the registry uses its root `OVERVIEW.md`, which versions published before `docs/` may ship. Without either, it uses `extensions/<owner>/<slug>.md`, which the reviewer writes before approval. When a later version ships its own overview, that one takes precedence and the bump removes the registry copy.
+When the pinned version ships no `docs/overview.md`, the registry uses the package's root `OVERVIEW.md`, which versions published before `docs/` may ship. Without either, it uses `extensions/<owner>/<slug>.md`, which the reviewer writes before approval. When a later version ships its own overview, that one takes precedence and the bump removes the registry copy.
 
 An overview explains, in this order and without fixed headings: what the extension does, how it works when that is not obvious, the setup it needs, and the options and limits worth knowing. It has no install commands, badges, changelog, license text, or marketing.
 

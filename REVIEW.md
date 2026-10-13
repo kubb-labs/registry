@@ -34,7 +34,7 @@ Inspect the package without running it. Read its files from the npm tarball (`np
 
 ## Overview
 
-`docs/overview.md` is the extension's page on kubb.dev. It follows this content contract:
+`docs/overview.md` is the extension's page on kubb.dev. Check each item:
 
 - [ ] It opens with what the extension is and does, in one or two short paragraphs.
 - [ ] It explains how it works only when that is not obvious.

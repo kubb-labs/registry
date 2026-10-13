@@ -17,7 +17,7 @@ const BLOCK = 512
  * The files read from a tarball, by path relative to the package root, and the wanted files that
  * were skipped for being larger than the limit.
  */
-export type TarFiles = { files: Map<string, string>; tooLarge: Array<string> }
+type TarFiles = { files: Map<string, string>; tooLarge: Array<string> }
 
 /**
  * Reads the regular files that `wanted` accepts from an uncompressed tar archive. npm tarballs

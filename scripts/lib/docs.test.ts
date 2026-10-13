@@ -61,34 +61,34 @@ describe('docsProblems', () => {
   })
 
   it('reports a missing title', () => {
-    expect(docsProblems('Some text.')).toStrictEqual(['the first line is not a "# Title" heading'])
+    expect(docsProblems('Some text.')).toStrictEqual(['the first line is not a "# Title" heading. Start the file with one.'])
   })
 
   it('reports a missing description', () => {
-    expect(docsProblems('# Options\n\n## output\n')).toStrictEqual(['no paragraph follows the title to serve as the description'])
+    expect(docsProblems('# Options\n\n## output\n')).toStrictEqual(['no description. Add a paragraph right after the title.'])
   })
 
   it('reports raw HTML outside code fences with its lines', () => {
     expect(docsProblems('# Options\n\nText.\n\n<div align="center">\n\n</div>\n\n<!-- note -->')).toStrictEqual([
-      'raw HTML outside code fences on lines 5, 7, 9; use Markdown',
+      'raw HTML outside code fences on lines 5, 7, 9. Use Markdown instead.',
     ])
   })
 
   it('reports an include, even inside a code fence', () => {
     expect(docsProblems('# Options\n\nText.\n\n<!--@include: ./snippet.md-->\n\n```md\n<!--@include: ./a.md-->\n```')).toStrictEqual([
-      '<!--@include on lines 5, 8; paste the included text instead',
+      '<!--@include on lines 5, 8. Paste the included text instead.',
     ])
   })
 
   it('reports a twoslash code fence', () => {
     expect(docsProblems('# Options\n\nText.\n\n```typescript twoslash [kubb.config.ts]\nconst a = 1\n```')).toStrictEqual([
-      'a twoslash code fence on line 5; remove twoslash',
+      'a twoslash code fence on line 5. Remove twoslash.',
     ])
   })
 
   it('reports each component outside the allowlist once', () => {
     expect(docsProblems('# Options\n\nText.\n\n::file-tree\n::\n\n::file-tree\n::\n\n::steps\n::')).toStrictEqual([
-      'the ::file-tree component on lines 5, 8 does not render; use Markdown or ::code-group, ::field-group, ::field, ::steps, ::code-collapse, ::tabs, ::tabs-item',
+      'the ::file-tree component on lines 5, 8 does not render. Use Markdown or ::code-group, ::field-group, ::field, ::steps, ::code-collapse, ::tabs, ::tabs-item.',
     ])
   })
 })
@@ -129,8 +129,12 @@ describe('readDocs', () => {
 
     expect(guides.map(({ id }) => id)).toStrictEqual(['retries'])
     expect(problems).toStrictEqual([
-      { path: 'docs/guides/Auth_Flow.md', problem: 'the guide id "Auth_Flow" is not kebab case; rename the file' },
-      { path: 'docs/guides/no-title.md', problem: 'the first line is not a "# Title" heading' },
+      {
+        path: 'docs/guides/Auth_Flow.md',
+        problem: 'the guide id "Auth_Flow" is not kebab case, so the guide is not listed. Rename the file in kebab case, such as base-url.md.',
+      },
+      { path: 'docs/guides/no-title.md', problem: 'the first line is not a "# Title" heading. Start the file with one.' },
+      { path: 'docs/guides/no-title.md', problem: 'the guide is not listed until it has a title and a description.' },
     ])
   })
 
@@ -139,7 +143,7 @@ describe('readDocs', () => {
     const { guides, problems } = readDocs(new Map([['docs/guides/retries.md', content]]))
 
     expect(guides).toHaveLength(1)
-    expect(problems).toStrictEqual([{ path: 'docs/guides/retries.md', problem: 'raw HTML outside code fences on line 5; use Markdown' }])
+    expect(problems).toStrictEqual([{ path: 'docs/guides/retries.md', problem: 'raw HTML outside code fences on line 5. Use Markdown instead.' }])
   })
 
   it('lists at most 50 guides', () => {
@@ -149,6 +153,6 @@ describe('readDocs', () => {
 
     expect(guides).toHaveLength(50)
     expect(guides.at(-1)?.id).toBe('guide-49')
-    expect(problems).toStrictEqual([{ path: 'docs/guides/', problem: 'holds 52 guides; only the first 50 by file name are listed' }])
+    expect(problems).toStrictEqual([{ path: 'docs/guides/', problem: 'holds 52 guides. Only the first 50 by file name are listed.' }])
   })
 })

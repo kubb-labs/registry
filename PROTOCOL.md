@@ -60,13 +60,13 @@ type RegistryGuide = {
 
 ### Render the Markdown
 
-All Markdown in a detail comes from the package author, so it is untrusted. Render it as plain Markdown, and escape or drop raw HTML instead of rendering it. Every docs file starts with a `# Title` line, and the paragraph after it is its description. Beyond plain Markdown, these render:
+All Markdown in a detail comes from the package author, so it is untrusted. Render it as plain Markdown, and escape or drop raw HTML instead of rendering it. Each guide starts with a `# Title` line and a description paragraph. The overview and options page should too, but do not rely on it. Beyond plain Markdown, these render:
 
 - Code fences with a language and an optional title, such as ` ```typescript [kubb.config.ts] `.
 - The callouts `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, and `> [!WARNING]`.
 - The components `::code-group`, `::field-group` with `:::field`, `::steps`, `::code-collapse`, and `::tabs` with `:::tabs-item`.
 
-Validation reports raw HTML, `<!--@include`, twoslash code fences, and other components before a version is approved. Clients still render defensively: a component a client does not support shows as plain Markdown.
+Validation reports raw HTML, `<!--@include`, twoslash code fences, and other components before a version is approved. Clients must still handle them. Show a component you do not support as plain Markdown.
 
 ## `GET <base>/categories.json`
 

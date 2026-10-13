@@ -85,7 +85,7 @@ export async function checkArtifact({
   ].find((candidate): candidate is { source: string; text: string } => candidate.text !== null)
   const overviewIssues = overview
     ? overviewProblems(overview.text).map((problem) => `${overview.source}: ${problem}`)
-    : [`${label} ships no ${DOCS_OVERVIEW_FILE}; add extensions/${record.id}.md`]
+    : [`${label} ships no ${DOCS_OVERVIEW_FILE}. Add extensions/${record.id}.md.`]
   return {
     manifest,
     authorOverview,

@@ -7,7 +7,7 @@ import type { RegistryGuide } from '@kubb/core'
 import { SLUG_PATTERN } from './records.ts'
 
 export const DOCS_OVERVIEW_FILE = 'docs/overview.md'
-export const DOCS_OPTIONS_FILE = 'docs/options.md'
+const DOCS_OPTIONS_FILE = 'docs/options.md'
 
 /** A version that ships more guides keeps the first ones by file name. */
 const MAX_GUIDES = 50
@@ -101,30 +101,36 @@ export function docsProblems(content: string): Array<string> {
   const { title, description } = parseDocsFile(content)
   const { html, include, twoslash, components } = syntaxFindings(content)
   return [
-    ...(title === null ? ['the first line is not a "# Title" heading'] : []),
-    ...(title !== null && description === null ? ['no paragraph follows the title to serve as the description'] : []),
-    ...(html.length ? [`raw HTML outside code fences on ${onLines(html)}; use Markdown`] : []),
-    ...(include.length ? [`<!--@include on ${onLines(include)}; paste the included text instead`] : []),
-    ...(twoslash.length ? [`a twoslash code fence on ${onLines(twoslash)}; remove twoslash`] : []),
-    ...[...components].map(([name, lines]) => `the ::${name} component on ${onLines(lines)} does not render; use Markdown or ${ALLOWED_COMPONENTS}`),
+    ...(title === null ? ['the first line is not a "# Title" heading. Start the file with one.'] : []),
+    ...(title !== null && description === null ? ['no description. Add a paragraph right after the title.'] : []),
+    ...(html.length ? [`raw HTML outside code fences on ${onLines(html)}. Use Markdown instead.`] : []),
+    ...(include.length ? [`<!--@include on ${onLines(include)}. Paste the included text instead.`] : []),
+    ...(twoslash.length ? [`a twoslash code fence on ${onLines(twoslash)}. Remove twoslash.`] : []),
+    ...[...components].map(([name, lines]) => `the ::${name} component on ${onLines(lines)} does not render. Use Markdown or ${ALLOWED_COMPONENTS}.`),
   ]
 }
 
 /**
  * A problem with one docs file, by path relative to the package root.
  */
-export type DocsProblem = { path: string; problem: string }
+type DocsProblem = { path: string; problem: string }
 
 /**
- * Checks one guide. A guide without a title, a description, or a kebab-case id is left out.
+ * Checks one guide. A guide without a title, a description, or a kebab-case id is left out, and
+ * its problems say so.
  */
 function readGuide({ path, content }: { path: string; content: string }): { guide: RegistryGuide | null; problems: Array<DocsProblem> } {
   const id = path.match(GUIDE_FILE)?.[1] ?? ''
   const { title, description } = parseDocsFile(content)
-  const idProblems = SLUG_PATTERN.test(id) ? [] : [`the guide id "${id}" is not kebab case; rename the file`]
-  const problems = [...idProblems, ...docsProblems(content)].map((problem) => ({ path, problem }))
-  const listed = !idProblems.length && title !== null && description !== null
-  return { guide: listed ? { id, title, description, content } : null, problems }
+  const kebabCase = SLUG_PATTERN.test(id)
+  const complete = title !== null && description !== null
+  const idProblems = kebabCase
+    ? []
+    : [`the guide id "${id}" is not kebab case, so the guide is not listed. Rename the file in kebab case, such as base-url.md.`]
+  const unlistedProblems = kebabCase && !complete ? ['the guide is not listed until it has a title and a description.'] : []
+  const problems = [...idProblems, ...docsProblems(content), ...unlistedProblems].map((problem) => ({ path, problem }))
+  if (!kebabCase || !complete) return { guide: null, problems }
+  return { guide: { id, title, description, content }, problems }
 }
 
 /**
@@ -145,7 +151,7 @@ export function readDocs(files: ReadonlyMap<string, string>): {
   const guidePaths = [...files.keys()].filter((path) => GUIDE_FILE.test(path)).toSorted()
   const capProblems =
     guidePaths.length > MAX_GUIDES
-      ? [{ path: 'docs/guides/', problem: `holds ${guidePaths.length} guides; only the first ${MAX_GUIDES} by file name are listed` }]
+      ? [{ path: 'docs/guides/', problem: `holds ${guidePaths.length} guides. Only the first ${MAX_GUIDES} by file name are listed.` }]
       : []
   const guides = guidePaths.slice(0, MAX_GUIDES).map((path) => readGuide({ path, content: files.get(path)! }))
 
