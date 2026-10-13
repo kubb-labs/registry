@@ -4,7 +4,7 @@
  */
 import { Ajv } from 'ajv'
 import addFormats from 'ajv-formats'
-import { type ExtensionManifest, manifestProblems } from '@kubb/core/manifest'
+import { type ExtensionManifest, manifestProblems } from '@kubb/core'
 import manifestSchema from '@kubb/core/schemas/kubb-extension.json' with { type: 'json' }
 import recordSchema from '../../schemas/registry-record.json' with { type: 'json' }
 import type { RegistryRecord } from './types.ts'

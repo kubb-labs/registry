@@ -1,7 +1,7 @@
-import type { ExtensionManifest } from '@kubb/core/manifest'
+import type { ExtensionManifest } from '@kubb/core'
 
 /**
- * Types for the registry's own files. The manifest and protocol types come from `@kubb/core/manifest`.
+ * Types for the registry's own files. The manifest and protocol types come from `@kubb/core`.
  */
 
 /**
