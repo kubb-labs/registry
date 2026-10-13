@@ -12,6 +12,12 @@ import type { RegistryRecord } from './types.ts'
 /** Owners and slugs: lowercase words joined by single hyphens. */
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
+/**
+ * Owners no record may use: kubb.dev serves `/extensions/<owner>/<slug>`, and these two are its
+ * filter pages, `/extensions/kind/<kind>` and `/extensions/category/<slug>`.
+ */
+const RESERVED_OWNERS = new Set(['kind', 'category'])
+
 const ajv = new Ajv({ allErrors: true })
 addFormats(ajv)
 const validateRecordSchema = ajv.compile(recordSchema)
@@ -71,6 +77,7 @@ export function validateRecord({
   const pathId = relativePath.replaceAll('\\', '/').replace(/\.json$/, '')
   if (id !== pathId) errors.push(`/id "${id}" must equal the path "${pathId}"`)
   const [owner, slug] = id.split('/')
+  if (RESERVED_OWNERS.has(owner!)) errors.push(`/id owner "${owner}" is reserved for kubb.dev's /extensions/${owner}/ pages`)
   const packageSlug = slugFromPackage(artifact.package)
   if (slug !== packageSlug) errors.push(`/id slug "${slug}" must equal the package name without its scope "${packageSlug}"`)
   const repo = parseRepositoryUrl(repository.url)

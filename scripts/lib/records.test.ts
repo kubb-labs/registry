@@ -40,6 +40,13 @@ describe('validateRecord', () => {
     ])
   })
 
+  it('rejects an owner kubb.dev reserves for its filter pages', () => {
+    const other = { ...record, id: 'category/plugin-zod', repository: { url: 'https://github.com/category/plugin-zod' } }
+    expect(validateRecord({ record: other, relativePath: 'category/plugin-zod.json', knownCategories: known })).toStrictEqual([
+      '/id owner "category" is reserved for kubb.dev\'s /extensions/category/ pages',
+    ])
+  })
+
   it('rejects a category that is not in categories.json', () => {
     expect(
       validateRecord({ record: { ...record, categories: ['validation', 'graphql'] }, relativePath: 'kubb-labs/plugin-zod.json', knownCategories: known }),
