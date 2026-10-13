@@ -67,25 +67,16 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
-  platform:
-    name: Redeploy kubb.dev
+  deploy-platform:
+    name: Dispatch content-updated to platform
     needs: pages
-    timeout-minutes: 5
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions: {}
-    env:
-      PLATFORM_DISPATCH_TOKEN: ${{ secrets.PLATFORM_DISPATCH_TOKEN }}
     steps:
-      # The registry is already live. Without the token, only kubb.dev's extension pages wait for its next deploy.
-      - name: Report a missing token
-        if: env.PLATFORM_DISPATCH_TOKEN == ''
-        run: echo "::warning::PLATFORM_DISPATCH_TOKEN is not set, so kubb.dev was not asked to redeploy."
-
-      - name: Dispatch content-updated to platform
-        if: env.PLATFORM_DISPATCH_TOKEN != ''
-        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
+      - uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
         with:
-          token: ${{ env.PLATFORM_DISPATCH_TOKEN }}
+          token: ${{ secrets.PLATFORM_DISPATCH_TOKEN }}
           repository: kubb-labs/platform
           event-type: content-updated
           client-payload: '{"source": "registry", "ref": "${{ github.ref_name }}"}'
