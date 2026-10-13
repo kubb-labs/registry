@@ -13,12 +13,13 @@ body:
     id: source
     attributes:
       label: Source
-      description: >-
-        Where the extension lives: an npm package name, optionally with an exact version
-        (`@acme/kubb-plugin-graphql@1.2.3`), its npmjs.com page, or a GitHub repository URL,
-        including one to the package folder. Without a version, the npm `latest` version is used.
-        A package that is not on npm installs from a GitHub release: link the repository root,
-        optionally with the release tag (`/tree/v1.2.0`), or the latest release is used.
+      description: |
+        Where the extension lives. Examples:
+        - npm package: `@acme/kubb-plugin-graphql` (uses the `latest` version)
+        - npm package with a version: `@acme/kubb-plugin-graphql@1.2.3`
+        - npm page: `https://www.npmjs.com/package/@acme/kubb-plugin-graphql`
+        - GitHub package folder: `https://github.com/acme/kubb-plugins/tree/main/packages/graphql`
+        - GitHub release (not on npm): `https://github.com/acme/kubb-plugin-graphql/tree/v1.2.0`, or the repository root for the latest release
       placeholder: 'https://github.com/acme/kubb-plugins/tree/main/packages/graphql'
     validations:
       required: true
