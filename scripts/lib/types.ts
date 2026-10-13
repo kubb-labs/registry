@@ -6,10 +6,6 @@
 
 export type JSONValue = string | number | boolean | null | Array<JSONValue> | { [key: string]: JSONValue }
 
-export type ExtensionKind = 'plugin' | 'adapter' | 'parser'
-
-export type ExtensionIcon = { light: string; dark?: string }
-
 export type ExtensionManifestOption = {
   key: string
   path: Array<string>
@@ -26,13 +22,13 @@ export type ExtensionManifestOption = {
 
 export type ExtensionManifest = {
   $schema?: string
-  kind: ExtensionKind
+  kind: 'plugin' | 'adapter' | 'parser'
   name: string
   export: string
   displayName: string
   description: string
   category?: string
-  icon?: ExtensionIcon
+  icon?: { light: string; dark?: string }
   media?: Array<string>
   tags?: Array<string>
   docs?: string
@@ -40,11 +36,6 @@ export type ExtensionManifest = {
   role?: 'client' | 'consumer'
   options?: Array<ExtensionManifestOption>
 }
-
-/**
- * Reviewer overrides a record applies over the manifest.
- */
-export type RegistryListing = Partial<Pick<ExtensionManifest, 'displayName' | 'description' | 'tags' | 'icon'>>
 
 /**
  * A reviewed record in `extensions/<owner>/<slug>.json`.
@@ -60,7 +51,8 @@ export type RegistryRecord = {
   reviewedAt: string
   /** Reviewer-owned category slugs from `categories.json`. The first is the main one. */
   categories?: Array<string>
-  listing?: RegistryListing
+  /** Reviewer overrides applied over the manifest. */
+  listing?: Partial<Pick<ExtensionManifest, 'displayName' | 'description' | 'tags' | 'icon'>>
 }
 
 /**
@@ -68,7 +60,7 @@ export type RegistryRecord = {
  */
 export type RegistryEntry = {
   id: string
-  kind: ExtensionKind
+  kind: ExtensionManifest['kind']
   type: 'official' | 'community'
   artifact: RegistryRecord['artifact']
   repository?: { url: string }

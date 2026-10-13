@@ -44,10 +44,9 @@ export function loadRecords(): Array<LoadedRecord> {
       problems.push(...errors.map((error) => `${EXTENSIONS_DIR}/${path}: ${error}`))
       continue
     }
-    const overviewPath = join(dir, path.replace(/\.json$/, '.md'))
-    const registryOverview = existsSync(overviewPath) ? readFileSync(overviewPath, 'utf8') : null
-    if (registryOverview !== null)
-      problems.push(...overviewProblems(registryOverview).map((problem) => `${EXTENSIONS_DIR}/${path.replace(/\.json$/, '.md')}: ${problem}`))
+    const overviewPath = path.replace(/\.json$/, '.md')
+    const registryOverview = existsSync(join(dir, overviewPath)) ? readFileSync(join(dir, overviewPath), 'utf8') : null
+    if (registryOverview !== null) problems.push(...overviewProblems(registryOverview).map((problem) => `${EXTENSIONS_DIR}/${overviewPath}: ${problem}`))
     records.push({ record: record as RegistryRecord, path, registryOverview })
   }
 

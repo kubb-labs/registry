@@ -1,15 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  applyListing,
-  approveRecord,
-  bumpRecord,
-  compareVersions,
-  recordDateProblems,
-  recordIdFromPath,
-  registryTypeOf,
-  validateManifest,
-  validateRecord,
-} from './records.ts'
+import { applyListing, approveRecord, bumpRecord, recordDateProblems, registryTypeOf, validateManifest, validateRecord } from './records.ts'
 import type { RegistryRecord } from './types.ts'
 
 const known = new Set(['validation', 'types'])
@@ -89,14 +79,23 @@ describe('validateManifest', () => {
   it('ignores unknown top-level keys', () => {
     expect(validateManifest({ ...manifest, future: 1 })).toStrictEqual([])
   })
+
+  it.each([
+    ['an unknown kind', { ...manifest, kind: 'loader' }],
+    ['an empty name', { ...manifest, name: '' }],
+    ['an export that is not an identifier', { ...manifest, export: 'plugin-zod' }],
+    ['a select without choices', { ...manifest, options: [{ key: 'mode', path: ['mode'], label: 'Mode', type: 'select', choices: [] }] }],
+  ])('rejects %s', (_label, invalid) => {
+    expect(validateManifest(invalid).length).toBeGreaterThan(0)
+  })
+
+  it('runs the semantic checks after the schema', () => {
+    const option = { key: 'mode', path: ['mode'], label: 'Mode', type: 'text' }
+    expect(validateManifest({ ...manifest, options: [option, option] })).toStrictEqual(['option "mode" is declared more than once'])
+  })
 })
 
 describe('helpers', () => {
-  it('reads the record id from its path', () => {
-    expect(recordIdFromPath('kubb-labs/plugin-zod.json')).toBe('kubb-labs/plugin-zod')
-    expect(recordIdFromPath('Kubb_Labs/plugin-zod.json')).toBeNull()
-  })
-
   it('derives the type from the owner', () => {
     expect(registryTypeOf('kubb-labs/plugin-zod')).toBe('official')
     expect(registryTypeOf('acme/kubb-plugin-x')).toBe('community')
@@ -114,14 +113,8 @@ describe('helpers', () => {
 })
 
 describe('recordDateProblems', () => {
-  it('accepts a new record stamped to the second', () => {
+  it('accepts a new record', () => {
     expect(recordDateProblems({ record, listed: undefined })).toStrictEqual([])
-  })
-
-  it('rejects a new date without the time', () => {
-    expect(recordDateProblems({ record: { ...record, reviewedAt: '2026-10-12' }, listed: undefined })).toStrictEqual([
-      expect.stringMatching(/^reviewedAt must be a UTC timestamp to the second/),
-    ])
   })
 
   it('accepts a bump that moves only reviewedAt', () => {
@@ -142,18 +135,7 @@ describe('recordDateProblems', () => {
   })
 })
 
-describe('bump decision', () => {
-  it.each([
-    ['5.4.5', '5.4.4', 1],
-    ['5.10.0', '5.9.9', 1],
-    ['5.4.4', '5.4.4', 0],
-    ['5.4.4-beta.1', '5.4.4', -1],
-    ['5.4.4-beta.10', '5.4.4-beta.2', 1],
-    ['5.4.4-alpha', '5.4.4-beta', -1],
-  ])('compares %s with %s', (a, b, expected) => {
-    expect(compareVersions({ a, b })).toBe(expected)
-  })
-
+describe('bumpRecord', () => {
   it('moves the pin and reviewedAt when latest is newer', () => {
     expect(bumpRecord({ record, latest: '5.5.0', now: new Date('2026-10-19T08:00:00.123Z') })).toStrictEqual({
       ...record,
@@ -162,8 +144,19 @@ describe('bump decision', () => {
     })
   })
 
-  it.each(['5.4.4', '5.4.3'])('keeps the record when latest is %s', (latest) => {
-    expect(bumpRecord({ record, latest, now: new Date() })).toBeNull()
+  it.each([
+    ['5.4.5', '5.4.4', true],
+    ['5.10.0', '5.9.9', true],
+    ['5.4.4', '5.4.4', false],
+    ['5.4.3', '5.4.4', false],
+    ['5.4.4', '5.4.4-beta.1', true],
+    ['5.4.4-beta.1', '5.4.4', false],
+    ['5.4.4-beta.10', '5.4.4-beta.2', true],
+    ['5.4.4-beta', '5.4.4-beta.1', false],
+    ['5.4.4-beta', '5.4.4-alpha', true],
+    ['5.4.4-beta', '5.4.4-1', true],
+  ])('latest %s over pin %s bumps: %s', (latest, version, bumps) => {
+    expect(bumpRecord({ record: { ...record, artifact: { ...record.artifact, version } }, latest, now: new Date() }) !== null).toBe(bumps)
   })
 })
 

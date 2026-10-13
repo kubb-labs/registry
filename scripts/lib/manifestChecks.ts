@@ -2,74 +2,21 @@
  * Semantic checks on a `kubb-extension.json` that the JSON Schema cannot express. Pure: they read
  * the parsed JSON and never load or run the extension.
  */
-
-const KINDS = new Set(['plugin', 'adapter', 'parser'])
-const COMPATIBILITY_KEYS = new Set(['kubb', 'node'])
-const IDENTIFIER = /^[A-Za-z_$][\w$]*$/
-
-const isObject = (value: unknown): value is Record<string, unknown> => value != null && typeof value === 'object' && !Array.isArray(value)
+import { isDeepStrictEqual } from 'node:util'
+import type { ExtensionManifest } from './types.ts'
 
 /**
- * Structural equality for JSON values.
+ * Returns what is wrong with a manifest that passed the JSON Schema, empty when it passes: option
+ * keys are unique, and a select's default is one of its choice values.
  */
-export function deepEqual({ a, b }: { a: unknown; b: unknown }): boolean {
-  if (a === b) return true
-  if (Array.isArray(a) || Array.isArray(b)) {
-    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, index) => deepEqual({ a: item, b: b[index] }))
-  }
-  if (!isObject(a) || !isObject(b)) return false
-  const keys = Object.keys(a)
-  return keys.length === Object.keys(b).length && keys.every((key) => Object.hasOwn(b, key) && deepEqual({ a: a[key], b: b[key] }))
-}
-
-function exportProblems(exportName: unknown): Array<string> {
-  if (typeof exportName !== 'string' || !exportName) return ['export is missing']
-  return IDENTIFIER.test(exportName) ? [] : [`export "${exportName}" is not a JavaScript identifier`]
-}
-
-function compatibilityProblems(compatibility: unknown): Array<string> {
-  if (compatibility === undefined) return []
-  if (!isObject(compatibility)) return ['compatibility must be an object']
-  return Object.keys(compatibility)
-    .filter((key) => !COMPATIBILITY_KEYS.has(key))
-    .map((key) => `compatibility.${key} is unknown; use "kubb" or "node"`)
-}
-
-/**
- * Returns what is wrong with a parsed manifest, empty when it passes:
- * `kind`, `name`, and `export` are present, `export` is a JavaScript identifier, `compatibility`
- * holds only `kubb` and `node`, option keys are unique, every select has choices, and a select's
- * default is one of its choice values.
- */
-export function manifestProblems(manifest: unknown): Array<string> {
-  if (!isObject(manifest)) return ['the manifest must be a JSON object']
+export function manifestProblems({ options = [] }: ExtensionManifest): Array<string> {
   const problems: Array<string> = []
-  const { kind, name, export: exportName, compatibility, options } = manifest
-
-  if (typeof kind !== 'string' || !KINDS.has(kind)) problems.push('kind must be "plugin", "adapter", or "parser"')
-  if (typeof name !== 'string' || !name) problems.push('name is missing')
-  problems.push(...exportProblems(exportName), ...compatibilityProblems(compatibility))
-
-  if (options !== undefined && !Array.isArray(options)) problems.push('options must be an array')
   const seen = new Set<string>()
-  for (const [index, option] of (Array.isArray(options) ? options : []).entries()) {
-    if (!isObject(option)) {
-      problems.push(`options[${index}] must be an object`)
-      continue
-    }
-    const label = typeof option.key === 'string' ? `option "${option.key}"` : `options[${index}]`
-    if (typeof option.key === 'string') {
-      if (seen.has(option.key)) problems.push(`${label} is declared more than once`)
-      seen.add(option.key)
-    }
-    if (option.type !== 'select') continue
-    const choices = Array.isArray(option.choices) ? option.choices : []
-    if (!choices.length) {
-      problems.push(`${label} is a select without choices`)
-      continue
-    }
-    if ('default' in option && !choices.some((choice) => isObject(choice) && deepEqual({ a: choice.value, b: option.default }))) {
-      problems.push(`${label} has a default that is not one of its choices`)
+  for (const option of options) {
+    if (seen.has(option.key)) problems.push(`option "${option.key}" is declared more than once`)
+    seen.add(option.key)
+    if (option.type === 'select' && 'default' in option && !option.choices?.some((choice) => isDeepStrictEqual(choice.value, option.default))) {
+      problems.push(`option "${option.key}" has a default that is not one of its choices`)
     }
   }
   return problems

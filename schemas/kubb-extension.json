@@ -160,7 +160,7 @@
       "allOf": [
         {
           "if": { "properties": { "type": { "const": "select" } } },
-          "then": { "required": ["choices"] }
+          "then": { "required": ["choices"], "properties": { "choices": { "type": "array", "minItems": 1 } } }
         }
       ]
     }

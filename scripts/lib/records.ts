@@ -12,9 +12,6 @@ import type { ExtensionManifest, RegistryRecord } from './types.ts'
 /** Owners and slugs: lowercase words joined by single hyphens. */
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-/** The owner whose records count as official. */
-export const OFFICIAL_OWNER = 'kubb-labs'
-
 const ajv = new Ajv({ allErrors: true })
 addFormats(ajv)
 const validateRecordSchema = ajv.compile(recordSchema)
@@ -22,15 +19,6 @@ const validateManifestSchema = ajv.compile(manifestSchema)
 
 function formatErrors(errors: typeof validateRecordSchema.errors): Array<string> {
   return (errors ?? []).map((error) => `${error.instancePath || '/'} ${error.message}`)
-}
-
-/**
- * Turns a path below `extensions/` (`kubb-labs/plugin-zod.json`) into the record id it must hold.
- */
-export function recordIdFromPath(relativePath: string): string | null {
-  const match = relativePath.replaceAll('\\', '/').match(/^([^/]+)\/([^/]+)\.json$/)
-  if (!match || !SLUG_PATTERN.test(match[1]!) || !SLUG_PATTERN.test(match[2]!)) return null
-  return `${match[1]}/${match[2]}`
 }
 
 /**
@@ -54,7 +42,7 @@ export function parseRepositoryUrl(url: string): { owner: string; repo: string }
  * `official` for records owned by kubb-labs, `community` for everyone else.
  */
 export function registryTypeOf(id: string): 'official' | 'community' {
-  return id.split('/')[0] === OFFICIAL_OWNER ? 'official' : 'community'
+  return id.split('/')[0] === 'kubb-labs' ? 'official' : 'community'
 }
 
 /**
@@ -65,8 +53,8 @@ export function toTimestamp(date: Date): string {
 }
 
 /**
- * Checks a record against the schema, the path it is stored at, and the known categories. Returns
- * the problems found, empty when the record is valid.
+ * Checks a record against the schema, the path it is stored at (`kubb-labs/plugin-zod.json`), and
+ * the known categories. Returns the problems found, empty when the record is valid.
  */
 export function validateRecord({
   record,
@@ -79,13 +67,12 @@ export function validateRecord({
 }): Array<string> {
   if (!validateRecordSchema(record)) return formatErrors(validateRecordSchema.errors)
   const { id, artifact, repository, categories = [] } = record as RegistryRecord
-  const errors: Array<string> = []
-  for (const category of categories.filter((slug) => !knownCategories.has(slug))) errors.push(`/categories "${category}" is not in categories.json`)
-  const expectedId = recordIdFromPath(relativePath)
-  if (id !== expectedId) errors.push(`/id "${id}" must equal the path "${expectedId ?? relativePath}"`)
+  const errors = categories.filter((slug) => !knownCategories.has(slug)).map((slug) => `/categories "${slug}" is not in categories.json`)
+  const pathId = relativePath.replaceAll('\\', '/').replace(/\.json$/, '')
+  if (id !== pathId) errors.push(`/id "${id}" must equal the path "${pathId}"`)
   const [owner, slug] = id.split('/')
-  if (slug !== slugFromPackage(artifact.package))
-    errors.push(`/id slug "${slug}" must equal the package name without its scope "${slugFromPackage(artifact.package)}"`)
+  const packageSlug = slugFromPackage(artifact.package)
+  if (slug !== packageSlug) errors.push(`/id slug "${slug}" must equal the package name without its scope "${packageSlug}"`)
   const repo = parseRepositoryUrl(repository.url)
   if (repo?.owner !== owner) errors.push(`/id owner "${owner}" must equal the repository owner "${repo?.owner ?? '?'}"`)
   return errors
@@ -97,7 +84,7 @@ export function validateRecord({
  */
 export function validateManifest(manifest: unknown): Array<string> {
   if (!validateManifestSchema(manifest)) return formatErrors(validateManifestSchema.errors)
-  return manifestProblems(manifest)
+  return manifestProblems(manifest as ExtensionManifest)
 }
 
 /**
@@ -110,31 +97,26 @@ export function applyListing({ manifest, record }: { manifest: ExtensionManifest
 }
 
 /**
- * Checks the record dates against the record as it was listed before this change (`undefined`
- * for a new record): `submittedAt` and `publishedAt` never change, and every date a change writes
- * is a UTC timestamp to the second.
+ * Checks a schema-valid record's dates against the record as it was listed before this change
+ * (`undefined` for a new record): `submittedAt` and `publishedAt` never change, and `reviewedAt`
+ * never moves back.
  */
 export function recordDateProblems({ record, listed }: { record: RegistryRecord; listed: Record<string, unknown> | undefined }): Array<string> {
-  const problems: Array<string> = []
-  for (const key of ['submittedAt', 'publishedAt'] as const) {
-    if (listed && listed[key] !== record[key]) problems.push(`${key} must stay ${JSON.stringify(listed[key])}; an update moves reviewedAt only`)
-  }
-  for (const key of ['submittedAt', 'publishedAt', 'reviewedAt'] as const) {
-    if (record[key] !== listed?.[key] && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(record[key])) {
-      problems.push(`${key} must be a UTC timestamp to the second, such as ${toTimestamp(new Date())}`)
-    }
-  }
-  if (listed && typeof listed.reviewedAt === 'string' && record.reviewedAt < listed.reviewedAt) problems.push('reviewedAt must not move back')
+  if (!listed) return []
+  const problems = (['submittedAt', 'publishedAt'] as const)
+    .filter((key) => listed[key] !== record[key])
+    .map((key) => `${key} must stay ${JSON.stringify(listed[key])}; an update moves reviewedAt only`)
+  if (typeof listed.reviewedAt === 'string' && record.reviewedAt < listed.reviewedAt) problems.push('reviewedAt must not move back')
   return problems
 }
 
 const VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/
 
 /**
- * Compares two semver versions by precedence: negative when `a` is lower, positive when higher,
- * 0 when equal. Throws on a version that is not semver.
+ * Semver precedence of `a` against `b`: negative when lower, positive when higher, 0 when equal.
+ * Throws on a version that is not semver.
  */
-export function compareVersions({ a, b }: { a: string; b: string }): number {
+function compareVersions({ a, b }: { a: string; b: string }): number {
   const [left, right] = [a, b].map((version) => {
     const match = version.match(VERSION_PATTERN)
     if (!match) throw new Error(`"${version}" is not a semver version`)
@@ -144,22 +126,17 @@ export function compareVersions({ a, b }: { a: string; b: string }): number {
     const diff = Number(left[index]) - Number(right[index])
     if (diff !== 0) return Math.sign(diff)
   }
-  const [preA, preB] = [left[4], right[4]]
-  if (preA === preB) return 0
+  const [preA, preB] = [left[4]?.split('.'), right[4]?.split('.')]
   // A release ranks above any prerelease of the same version.
-  if (preA === undefined) return 1
-  if (preB === undefined) return -1
-  const partsA = preA.split('.')
-  const partsB = preB.split('.')
-  for (let index = 0; index < Math.max(partsA.length, partsB.length); index++) {
-    const [partA, partB] = [partsA[index], partsB[index]]
+  if (!preA || !preB) return Number(!preA) - Number(!preB)
+  for (let index = 0; index < Math.max(preA.length, preB.length); index++) {
+    const [partA, partB] = [preA[index], preB[index]]
+    if (partA === partB) continue
     if (partA === undefined) return -1
     if (partB === undefined) return 1
-    if (partA === partB) continue
     const [numA, numB] = [/^\d+$/.test(partA), /^\d+$/.test(partB)]
     if (numA && numB) return Math.sign(Number(partA) - Number(partB))
-    if (numA) return -1
-    if (numB) return 1
+    if (numA !== numB) return numA ? -1 : 1
     return partA < partB ? -1 : 1
   }
   return 0
