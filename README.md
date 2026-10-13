@@ -6,7 +6,7 @@ Each record pins one npm version. Merging a record approves that exact version. 
 
 ## Use the registry
 
-The publish workflow builds the records into static JSON on every merge and once a day, so download and star counts stay current. It pushes the result to the [`dist`](https://github.com/kubb-labs/registry/tree/dist) branch and redeploys kubb.dev, which serves it at `https://kubb.dev/registry`, the base URL the CLI reads. Besides `index.json`, it serves `<owner>/<slug>.json` for one extension, `categories.json`, and the JSON Schemas under `schemas/`.
+kubb.dev clones this repository on every deploy, builds the records into static JSON with `pnpm build`, and serves the result at `https://kubb.dev/registry`, the base URL the CLI reads. The deploy workflow redeploys kubb.dev on every merge and once a day, so download and star counts stay current. Besides `index.json`, it serves `<owner>/<slug>.json` for one extension, `categories.json`, and the JSON Schemas under `schemas/`.
 
 ## Submit an extension
 
@@ -95,7 +95,7 @@ The `Validate` workflow runs the online check on changed records. Pull requests 
 | [Validate](.github/workflows/validate.yml) | Pull requests                | Type checks, lints, tests, and validates every record offline and the changed ones online. |
 | [Submit](.github/workflows/submit.yml)     | A `submission` issue changes | Writes the record and opens the review pull request.                                       |
 | [Bump](.github/workflows/bump.yml)         | Mondays                      | Opens one pull request that moves pins to npm `latest`.                                    |
-| [Publish](.github/workflows/publish.yml)   | Pushes to `main`, and daily  | Builds `dist/`, pushes it to the `dist` branch, and redeploys kubb.dev.                    |
+| [Deploy](.github/workflows/deploy.yml)     | Pushes to `main`, and daily  | Redeploys kubb.dev, which builds and serves the registry.                                  |
 
 ## Development
 
@@ -110,3 +110,5 @@ pnpm typecheck
 pnpm lint
 pnpm format
 ```
+
+kubb.dev runs `scripts/build.ts` from its own checkout without installing this repository's packages, so the build resolves `ajv` and `ajv-formats` from kubb.dev. Keep the build to those packages, or add a new one to kubb.dev first.
