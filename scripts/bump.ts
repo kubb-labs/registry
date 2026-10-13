@@ -3,11 +3,13 @@
  * when that is newer, and stamps `reviewedAt`.
  * A version that fails validation (README.md) keeps the old pin and is reported instead.
  * When the new version ships its own overview (`docs/overview.md`, or a root `OVERVIEW.md`), the
- * registry copy is removed. Never runs extension code. Run weekly by .github/workflows/bump.yml.
+ * registry copy is removed. Never runs extension code. Run weekly by .github/workflows/bump.yml, and
+ * with `--repo kubb-labs/plugins` when that repository releases.
  *
  * Writes a Markdown summary to the file in SUMMARY_FILE and sets the `count` output.
  */
 import { rmSync } from 'node:fs'
+import { parseArgs } from 'node:util'
 import { setOutput, writeMarkdown } from './lib/actions.ts'
 import { writeRecord } from './lib/changes.ts'
 import { checkArtifact } from './lib/check.ts'
@@ -19,6 +21,8 @@ import { bumpRecord } from './lib/records.ts'
 import type { GitHubArtifact, RegistryRecord } from './lib/types.ts'
 
 const SCOPE = 'bump'
+const { values } = parseArgs({ options: { repo: { type: 'string' } } })
+const repoUrl = values.repo && `https://github.com/${values.repo}`
 const now = new Date()
 const bumped: Array<string> = []
 const skipped: Array<string> = []
@@ -40,7 +44,8 @@ async function findLatest({ artifact }: RegistryRecord): Promise<Latest> {
   return commit ? { version: release.version, pin: { tag: release.tag, commit } } : { problem: `the tag of release ${release.version} could not be read` }
 }
 
-for (const { record, path, registryOverview } of loadRecords()) {
+const records = loadRecords().filter(({ record }) => !repoUrl || record.repository.url === repoUrl || record.repository.url.startsWith(`${repoUrl}/`))
+for (const { record, path, registryOverview } of records) {
   const latest = await findLatest(record)
   if ('problem' in latest) {
     skipped.push(`- \`${record.id}\`: ${latest.problem}`)
