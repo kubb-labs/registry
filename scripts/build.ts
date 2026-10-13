@@ -1,8 +1,8 @@
 /**
  * Builds the static registry protocol (PROTOCOL.md) into `dist/`: `index.json`, one
  * `<owner>/<slug>.json` per record, `categories.json`, and the JSON Schemas. For each record, the
- * manifest (`kubb-extension.json`) and `OVERVIEW.md` are read from its pinned npm tarball, and the
- * record's categories and listing are applied over the manifest. Never runs extension code.
+ * manifest (`kubb-extension.json`) and the `docs/` folder are read from its pinned npm tarball, and
+ * the record's categories and listing are applied over the manifest. Never runs extension code.
  *
  * A pinned official version released before manifests ships none. The record stays valid, but it is
  * left out of the index until a bump pins a version that ships one.

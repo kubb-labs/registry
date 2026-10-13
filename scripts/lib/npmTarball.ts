@@ -7,19 +7,29 @@ import { createHash } from 'node:crypto'
 import { gunzipSync } from 'node:zlib'
 import { fetchBytes, fetchJson } from './http.ts'
 
-/** Files larger than this are refused instead of read. */
-const MAX_FILE_BYTES = 256 * 1024
+/** Files larger than this are skipped instead of read. */
+export const MAX_FILE_BYTES = 256 * 1024
 /** A larger unpacked tarball is refused, so a hostile package cannot exhaust memory. */
 const MAX_TARBALL_BYTES = 64 * 1024 * 1024
 const BLOCK = 512
 
 /**
- * Reads the regular files at the package root whose names are in `wanted` from an uncompressed tar
- * archive. npm tarballs hold one top-level folder (`package/`), so `package/OVERVIEW.md` is returned
- * as `OVERVIEW.md`. Links, folders, and nested files are skipped.
+ * The files read from a tarball, by path relative to the package root, and the wanted files that
+ * were skipped for being larger than the limit.
  */
-export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: ReadonlySet<string> }): Map<string, string> {
+export type TarFiles = { files: Map<string, string>; tooLarge: Array<string> }
+
+/**
+ * Reads the regular files that `wanted` accepts from an uncompressed tar archive. npm tarballs
+ * hold one top-level folder (`package/`), so `wanted` gets, and the result holds, paths relative
+ * to it: `package/docs/overview.md` becomes `docs/overview.md`. Links and folders are skipped.
+ * When a path appears twice, the first regular copy wins. A file larger than 256 KiB is listed in
+ * `tooLarge` instead of read.
+ */
+export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: (path: string) => boolean }): TarFiles {
   const files = new Map<string, string>()
+  const tooLarge: Array<string> = []
+  const seen = new Set<string>()
   const decoder = new TextDecoder()
   const field = ({ offset, length }: { offset: number; length: number }) => decoder.decode(tar.subarray(offset, offset + length)).replace(/\0[\s\S]*$/, '')
   for (let offset = 0; offset + BLOCK <= tar.length;) {
@@ -29,15 +39,16 @@ export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: Readonl
     if (!Number.isFinite(size) || size < 0) throw new Error('corrupt tar header')
     const type = field({ offset: offset + 156, length: 1 })
     const prefix = field({ offset: offset + 345, length: 155 })
-    const file = (prefix ? `${prefix}/${name}` : name).match(/^[^/]+\/([^/]+)$/)?.[1]
+    const path = (prefix ? `${prefix}/${name}` : name).match(/^[^/]+\/(.+)$/)?.[1]
     offset += BLOCK
-    if ((type === '0' || type === '') && file && wanted.has(file) && !files.has(file)) {
-      if (size > MAX_FILE_BYTES) throw new Error(`${file} is larger than ${MAX_FILE_BYTES} bytes`)
-      files.set(file, decoder.decode(tar.subarray(offset, offset + size)))
+    if ((type === '0' || type === '') && path && !seen.has(path) && wanted(path)) {
+      seen.add(path)
+      if (size > MAX_FILE_BYTES) tooLarge.push(path)
+      if (size <= MAX_FILE_BYTES) files.set(path, decoder.decode(tar.subarray(offset, offset + size)))
     }
     offset += Math.ceil(size / BLOCK) * BLOCK
   }
-  return files
+  return { files, tooLarge }
 }
 
 /**
@@ -51,20 +62,20 @@ export function matchesIntegrity({ bytes, integrity }: { bytes: Uint8Array; inte
 type Packument = { versions?: Record<string, { dist?: { tarball?: string; integrity?: string } }> }
 
 /**
- * The wanted files an npm version ships at its package root, or an error when the version or its
- * tarball cannot be read.
+ * The files an npm version ships that `wanted` accepts, by path relative to the package root, or
+ * an error when the version or its tarball cannot be read.
  */
 export async function fetchPackageFiles({
   pkg,
   version,
-  files,
+  wanted,
   scope,
 }: {
   pkg: string
   version: string
-  files: Array<string>
+  wanted: (path: string) => boolean
   scope: string
-}): Promise<{ status: 'ok'; files: Map<string, string> } | { status: 'error'; message: string }> {
+}): Promise<({ status: 'ok' } & TarFiles) | { status: 'error'; message: string }> {
   const packument = await fetchJson<Packument>({ url: `https://registry.npmjs.org/${pkg}`, scope })
   if (!packument) return { status: 'error', message: `could not read ${pkg} from npm` }
   const dist = packument.versions?.[version]?.dist
@@ -76,7 +87,7 @@ export async function fetchPackageFiles({
     const bytes = await fetchBytes({ url: tarball, timeout: 60_000 })
     if (!matchesIntegrity({ bytes, integrity })) return { status: 'error', message: `${pkg}@${version}: the tarball does not match its integrity hash` }
     const tar = gunzipSync(bytes, { maxOutputLength: MAX_TARBALL_BYTES })
-    return { status: 'ok', files: readTarFiles({ tar, wanted: new Set(files) }) }
+    return { status: 'ok', ...readTarFiles({ tar, wanted }) }
   } catch (err) {
     return { status: 'error', message: `${pkg}@${version}: ${(err as Error).message}` }
   }

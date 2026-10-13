@@ -1,8 +1,8 @@
 /**
  * Moves each record's pinned version to npm `latest` when that is newer, and stamps `reviewedAt`.
  * A version that fails validation (README.md) keeps the old pin and is reported instead.
- * When the new version ships its own OVERVIEW.md, the registry copy is removed. Never runs
- * extension code. Run weekly by .github/workflows/bump.yml.
+ * When the new version ships its own overview (`docs/overview.md`, or a root `OVERVIEW.md`), the
+ * registry copy is removed. Never runs extension code. Run weekly by .github/workflows/bump.yml.
  *
  * Writes a Markdown summary to the file in SUMMARY_FILE and sets the `count` output.
  */
@@ -36,7 +36,7 @@ for (const { record, path, registryOverview } of loadRecords()) {
   const replacesOverview = authorOverview !== null && registryOverview !== null
   if (replacesOverview) rmSync(fromRoot(EXTENSIONS_DIR, path.replace(/\.json$/, '.md')))
   bumped.push(
-    `- \`${record.id}\`: ${record.artifact.version} → ${latest}${replacesOverview ? ' (ships its own OVERVIEW.md, so the registry copy is removed)' : ''}`,
+    `- \`${record.id}\`: ${record.artifact.version} → ${latest}${replacesOverview ? ' (ships its own overview, so the registry copy is removed)' : ''}`,
   )
 }
 

@@ -102,7 +102,7 @@ ${problems.map((problem) => problem.replaceAll('`', "'")).join('\n')}
 \`\`\`
 
 </details>`
-  : 'Validation passed: the manifest and the overview at this version are valid.'
+  : 'Validation passed: the manifest and the docs at this version are valid.'
 writeMarkdown({
   envName: 'PR_BODY_FILE',
   markdown: `Adds \`${resolved.pkg}@${version}\` to the extension registry as \`${id}\`. Submitted by @${author}.
@@ -111,7 +111,7 @@ ${categories.length ? `Categories: ${categories.map((category) => `\`${category}
 
 ${checks}
 
-Review it against [REVIEW.md](${REVIEW_URL}) before merging. Without an \`OVERVIEW.md\` in the package, the reviewer writes \`${EXTENSIONS_DIR}/${id}.md\`.
+Review it against [REVIEW.md](${REVIEW_URL}) before merging, including the options page and the guides in \`docs/\`. Without a \`docs/overview.md\` in the package, the reviewer writes \`${EXTENSIONS_DIR}/${id}.md\`.
 `,
 })
 
