@@ -1,4 +1,17 @@
 import { gzipSync } from 'node:zlib'
+import { vi } from 'vitest'
+
+/** Answers `fetch` from `routes` by URL: bytes as a body, anything else as JSON, a miss as 404. */
+export function stubFetch(routes: Map<string, unknown>): void {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      const body = routes.get(url)
+      if (body === undefined) return new Response(null, { status: 404 })
+      return body instanceof Uint8Array ? new Response(body) : Response.json(body)
+    }),
+  )
+}
 
 /** Builds an uncompressed tar archive from `[path, content, type]` entries. */
 export function tar(entries: Array<[string, string, string?]>): Uint8Array {

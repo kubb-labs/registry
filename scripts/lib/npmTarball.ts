@@ -5,7 +5,8 @@
  */
 import { createHash } from 'node:crypto'
 import { gunzipSync } from 'node:zlib'
-import { fetchBytes, fetchJson } from './http.ts'
+import { fetchBytes } from './http.ts'
+import { fetchPackument } from './npm.ts'
 
 /** Files larger than this are skipped instead of read. */
 export const MAX_FILE_BYTES = 256 * 1024
@@ -61,8 +62,6 @@ export function matchesIntegrity({ bytes, integrity }: { bytes: Uint8Array; inte
   return expected !== undefined && createHash('sha512').update(bytes).digest('base64') === expected
 }
 
-type Packument = { versions?: Record<string, { dist?: { tarball?: string; integrity?: string } }> }
-
 /**
  * The files an npm version ships that `wanted` accepts, by path relative to the package root, or
  * an error when the version or its tarball cannot be read.
@@ -78,7 +77,7 @@ export async function fetchPackageFiles({
   wanted: (path: string) => boolean
   scope: string
 }): Promise<({ status: 'ok' } & TarFiles) | { status: 'error'; message: string }> {
-  const packument = await fetchJson<Packument>({ url: `https://registry.npmjs.org/${pkg}`, scope })
+  const packument = await fetchPackument({ pkg, scope })
   if (!packument) return { status: 'error', message: `could not read ${pkg} from npm` }
   const dist = packument.versions?.[version]?.dist
   if (!dist) return { status: 'error', message: `${pkg}@${version} is not published on npm` }

@@ -13,15 +13,6 @@ function repoSlug(url: string): string | undefined {
   return repo ? `${repo.owner}/${repo.repo}` : undefined
 }
 
-/**
- * The number under `key` in the JSON at `url`, or undefined when it cannot be read, so an
- * unreachable API never reads as zero.
- */
-async function fetchCount({ url, key, headers }: { url: string; key: string; headers?: Record<string, string> }): Promise<number | undefined> {
-  const data = await fetchJson<Record<string, number | undefined>>({ url, headers, scope })
-  return data ? (data[key] ?? 0) : undefined
-}
-
 type Downloads = { downloads?: number; weekly?: number }
 
 /**
@@ -82,8 +73,12 @@ export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ ind
   console.log(`[${scope}] reading ${records.length} pinned versions…`)
   // One request per repository, since many records share one.
   const slugs = [...new Set(records.flatMap(({ record }) => repoSlug(record.repository.url) ?? []))]
+  // Undefined when GitHub cannot be read, so an unreachable API never reads as zero stars.
   const counts = await Promise.all(
-    slugs.map((slug) => fetchCount({ url: `https://api.github.com/repos/${slug}`, key: 'stargazers_count', headers: githubHeaders })),
+    slugs.map(async (slug) => {
+      const repo = await fetchJson<{ stargazers_count?: number }>({ url: `https://api.github.com/repos/${slug}`, headers: githubHeaders, scope })
+      return repo ? (repo.stargazers_count ?? 0) : undefined
+    }),
   )
   const stars = new Map(slugs.map((slug, index) => [slug, counts[index]]))
   // One package at a time, since npm rate-limits its downloads API.

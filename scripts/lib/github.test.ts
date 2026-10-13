@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { githubArchive } from './fixtures.ts'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { githubArchive, stubFetch } from './fixtures.ts'
 import { fetchGitHubFiles, fetchLatestRelease, releaseOfTag, resolveTagCommit } from './github.ts'
 
 const commit = '0123456789abcdef0123456789abcdef01234567'
@@ -7,17 +7,9 @@ const tagObject = 'fedcba9876543210fedcba9876543210fedcba98'
 const repo = { owner: 'acme', repo: 'kubb-plugin-x', scope: 'test' }
 const api = 'https://api.github.com/repos/acme/kubb-plugin-x'
 
-function stubFetch(routes: Map<string, unknown>): void {
+beforeEach(() => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async (url: string) => {
-      const body = routes.get(url)
-      if (body === undefined) return new Response(null, { status: 404 })
-      return body instanceof Uint8Array ? new Response(body) : Response.json(body)
-    }),
-  )
-}
+})
 
 afterEach(() => {
   vi.unstubAllGlobals()

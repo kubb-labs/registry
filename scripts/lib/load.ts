@@ -1,6 +1,6 @@
+import { overviewProblems } from './docs.ts'
 import { existsSync, globSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { overviewProblems } from './overview.ts'
 import { validateRecord } from './records.ts'
 import { EXTENSIONS_DIR, fromRoot } from './paths.ts'
 import type { RegistryCategory, RegistryRecord } from './types.ts'

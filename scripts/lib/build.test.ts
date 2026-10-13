@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { gzipSync } from 'node:zlib'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildRegistry } from './build.ts'
-import { githubArchive, tar } from './fixtures.ts'
+import { githubArchive, stubFetch, tar } from './fixtures.ts'
 import type { LoadedRecord } from './load.ts'
 import type { RegistryRecord } from './types.ts'
 
@@ -102,17 +102,6 @@ const routes = new Map<string, unknown>([
   ['https://api.github.com/repos/acme/kubb-plugin-z', { stargazers_count: 3 }],
 ])
 
-function stubNpm(): void {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async (url: string) => {
-      const body = routes.get(url)
-      if (body === undefined) return new Response(null, { status: 404 })
-      return body instanceof Uint8Array ? new Response(body) : Response.json(body)
-    }),
-  )
-}
-
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -122,7 +111,7 @@ describe('buildRegistry', () => {
   it('lists records from their pinned tarballs, reads a root OVERVIEW.md, and leaves out versions without a manifest', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    stubNpm()
+    stubFetch(routes)
     const records: Array<LoadedRecord> = [
       { record: official, path: 'kubb-labs/plugin-old.json', registryOverview: 'Old plugin.\n' },
       { record: community, path: 'acme/kubb-plugin-x.json', registryOverview: null },
@@ -152,7 +141,7 @@ describe('buildRegistry', () => {
   it('publishes the docs folder in the detail, leaves it out of the index, and keeps the extension when a guide fails', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    stubNpm()
+    stubFetch(routes)
 
     const { index, details } = await buildRegistry([{ record: withDocs, path: 'acme/kubb-plugin-y.json', registryOverview: 'Registry copy.\n' }])
 
@@ -186,7 +175,7 @@ describe('buildRegistry', () => {
   it('reads a GitHub release from the archive of its commit, without npm or tag requests', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    stubNpm()
+    stubFetch(routes)
 
     const { index, details } = await buildRegistry([{ record: fromGitHub, path: 'acme/kubb-plugin-z.json', registryOverview: null }])
 

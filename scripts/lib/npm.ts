@@ -1,12 +1,22 @@
 import { fetchJson } from './http.ts'
 
+/** The parts of a package's npm document the scripts read. */
+export type Packument = {
+  'dist-tags'?: Record<string, string>
+  versions?: Record<string, { dist?: { tarball?: string; integrity?: string }; repository?: unknown }>
+}
+
+/** A package's npm document, or null when npm has no such package or could not be reached. */
+export function fetchPackument({ pkg, scope }: { pkg: string; scope: string }): Promise<Packument | null> {
+  return fetchJson<Packument>({ url: `https://registry.npmjs.org/${pkg}`, scope })
+}
+
 /**
  * The version a package's `latest` dist-tag points at, or null when npm has no such package or
  * could not be reached.
  */
 export async function fetchNpmLatest({ pkg, scope }: { pkg: string; scope: string }): Promise<string | null> {
-  const data = await fetchJson<{ 'dist-tags'?: Record<string, string> }>({ url: `https://registry.npmjs.org/${pkg}`, scope })
-  return data?.['dist-tags']?.latest ?? null
+  return (await fetchPackument({ pkg, scope }))?.['dist-tags']?.latest ?? null
 }
 
 /**
