@@ -3,6 +3,7 @@
  * (.github/ISSUE_TEMPLATE/submit-extension.yml). The body is untrusted input: every field is
  * checked against a strict pattern before anything uses it, and errors never echo it back.
  */
+import { isPackageName } from '@kubb/core'
 import type { RegistryCategory } from './types.ts'
 
 /** What GitHub writes for an optional field left empty. */
@@ -10,8 +11,6 @@ const NO_RESPONSE = '_No response_'
 
 const PACKAGE_NAME = '(?:@[a-z0-9][a-z0-9._~-]*/)?[a-z0-9][a-z0-9._~-]*'
 const VERSION = '\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?'
-/** A valid npm package name, without the 214-character limit. */
-export const PACKAGE_PATTERN = new RegExp(`^${PACKAGE_NAME}$`)
 const NPM_SOURCE = new RegExp(`^(?:npm:)?(${PACKAGE_NAME})(?:@(${VERSION}))?$`)
 const NPM_PAGE = new RegExp(`^https://(?:www\\.)?npmjs\\.com/package/(${PACKAGE_NAME})(?:/v/(${VERSION}))?/?$`)
 const GITHUB_SOURCE = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+?)(?:\.git)?(?:\/tree\/([A-Za-z0-9._-]+)((?:\/[A-Za-z0-9._@-]+)*))?\/?$/
@@ -43,7 +42,7 @@ export function parseIssueForm(body: string): Record<string, string> {
 export function parseSource(input: string): { source: SubmissionSource } | { error: string } {
   const text = input.trim()
   const npm = text.match(NPM_SOURCE) ?? text.match(NPM_PAGE)
-  if (npm && npm[1]!.length <= 214) return { source: { kind: 'npm', package: npm[1]!, ...(npm[2] ? { version: npm[2] } : {}) } }
+  if (npm && isPackageName(npm[1])) return { source: { kind: 'npm', package: npm[1]!, ...(npm[2] ? { version: npm[2] } : {}) } }
 
   const github = text.match(GITHUB_SOURCE)
   if (github) {

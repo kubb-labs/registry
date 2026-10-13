@@ -5,11 +5,10 @@
  */
 import { fetchPackageFiles, MAX_FILE_BYTES } from './npmTarball.ts'
 import type { ExtensionManifest, RegistryArtifact, RegistryGuide } from '@kubb/core'
-import { DOCS_OVERVIEW_FILE, isDocsFile, readDocs } from './docs.ts'
+import { DOCS_OVERVIEW_FILE, isDocsFile, overviewProblems, readDocs } from './docs.ts'
 import { fetchGitHubFiles, resolveTagCommit } from './github.ts'
 import { githubPackageProblems } from './githubPackage.ts'
 import { npmHasPackage } from './npm.ts'
-import { overviewProblems } from './overview.ts'
 import { registryTypeOf, validateManifest } from './records.ts'
 import type { GitHubArtifact, RegistryRecord } from './types.ts'
 

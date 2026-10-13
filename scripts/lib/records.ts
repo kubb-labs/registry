@@ -134,11 +134,13 @@ export function recordDateProblems({ record, listed }: { record: RegistryRecord;
   return problems
 }
 
-const VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/
+const VERSION_PATTERN = /^(\d+\.\d+\.\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/
 
 /**
  * Semver precedence of `a` against `b`: negative when lower, positive when higher, 0 when equal.
- * Throws on a version that is not semver.
+ * Throws on a version that is not semver. Numeric collation orders the core and the prerelease the
+ * way semver does for the identifiers npm publishes: `10` over `2`, `beta.1` over `beta`, and a
+ * number below a word. It differs from strict semver only for mixed-case identifiers.
  */
 function compareVersions({ a, b }: { a: string; b: string }): number {
   const [left, right] = [a, b].map((version) => {
@@ -146,24 +148,11 @@ function compareVersions({ a, b }: { a: string; b: string }): number {
     if (!match) throw new Error(`"${version}" is not a semver version`)
     return match
   }) as [RegExpMatchArray, RegExpMatchArray]
-  for (const index of [1, 2, 3]) {
-    const diff = Number(left[index]) - Number(right[index])
-    if (diff !== 0) return Math.sign(diff)
-  }
-  const [preA, preB] = [left[4]?.split('.'), right[4]?.split('.')]
+  const core = left[1]!.localeCompare(right[1]!, 'en', { numeric: true })
+  if (core) return core
   // A release ranks above any prerelease of the same version.
-  if (!preA || !preB) return Number(!preA) - Number(!preB)
-  for (let index = 0; index < Math.max(preA.length, preB.length); index++) {
-    const [partA, partB] = [preA[index], preB[index]]
-    if (partA === partB) continue
-    if (partA === undefined) return -1
-    if (partB === undefined) return 1
-    const [numA, numB] = [/^\d+$/.test(partA), /^\d+$/.test(partB)]
-    if (numA && numB) return Math.sign(Number(partA) - Number(partB))
-    if (numA !== numB) return numA ? -1 : 1
-    return partA < partB ? -1 : 1
-  }
-  return 0
+  if (!left[2] || !right[2]) return Number(!left[2]) - Number(!right[2])
+  return left[2].localeCompare(right[2], 'en', { numeric: true })
 }
 
 /**

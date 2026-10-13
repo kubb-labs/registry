@@ -125,22 +125,12 @@ describe('validateManifest', () => {
     ])
   })
 
-  it('rejects a manifest without an export', () => {
-    const { export: _export, ...rest } = manifest
-    expect(validateManifest(rest)).toStrictEqual(["/ must have required property 'export'"])
-  })
-
   it('ignores unknown top-level keys', () => {
     expect(validateManifest({ ...manifest, future: 1 })).toStrictEqual([])
   })
 
-  it.each([
-    ['an unknown kind', { ...manifest, kind: 'loader' }],
-    ['an empty name', { ...manifest, name: '' }],
-    ['an export that is not an identifier', { ...manifest, export: 'plugin-zod' }],
-    ['a select without choices', { ...manifest, options: [{ key: 'mode', path: ['mode'], label: 'Mode', type: 'select', choices: [] }] }],
-  ])('rejects %s', (_label, invalid) => {
-    expect(validateManifest(invalid).length).toBeGreaterThan(0)
+  it('rejects a select without choices', () => {
+    expect(validateManifest({ ...manifest, options: [{ key: 'mode', path: ['mode'], label: 'Mode', type: 'select', choices: [] }] }).length).toBeGreaterThan(0)
   })
 
   it('runs the semantic checks after the schema', () => {

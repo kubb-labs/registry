@@ -8,14 +8,15 @@
  * Writes the issue comment to COMMENT_FILE on failure, and the pull request body to PR_BODY_FILE.
  */
 import { existsSync } from 'node:fs'
+import { isPackageName } from '@kubb/core'
 import { setOutput, writeMarkdown } from './lib/actions.ts'
 import { writeRecord } from './lib/changes.ts'
 import { artifactLabel, checkArtifact } from './lib/check.ts'
 import { fetchLatestRelease, releaseOfTag, resolveTagCommit } from './lib/github.ts'
 import { fetchJson } from './lib/http.ts'
-import { PACKAGE_PATTERN, parseCategories, parseIssueForm, parseSource, repositoryUrlFromNpm, type SubmissionSource } from './lib/issueForm.ts'
+import { parseCategories, parseIssueForm, parseSource, repositoryUrlFromNpm, type SubmissionSource } from './lib/issueForm.ts'
 import { loadCategories } from './lib/load.ts'
-import { npmHasPackage } from './lib/npm.ts'
+import { fetchPackument, npmHasPackage } from './lib/npm.ts'
 import { EXTENSIONS_DIR, fromRoot } from './lib/paths.ts'
 import { parseRepositoryUrl, SLUG_PATTERN, slugFromPackage, toTimestamp, validateRecord } from './lib/records.ts'
 import type { RegistryRecord } from './lib/types.ts'
@@ -30,7 +31,6 @@ function fail(message: string): never {
   process.exit(1)
 }
 
-type Packument = { 'dist-tags'?: Record<string, string>; versions?: Record<string, { repository?: unknown }> }
 type Resolved = Pick<RegistryRecord, 'artifact'> & { repositoryUrl: string }
 
 /**
@@ -38,7 +38,7 @@ type Resolved = Pick<RegistryRecord, 'artifact'> & { repositoryUrl: string }
  * metadata names unless the source already gave one.
  */
 async function resolveNpm({ pkg, version: wanted, repositoryUrl }: { pkg: string; version?: string; repositoryUrl?: string }): Promise<Resolved> {
-  const packument = await fetchJson<Packument>({ url: `https://registry.npmjs.org/${pkg}`, scope: SCOPE })
+  const packument = await fetchPackument({ pkg, scope: SCOPE })
   if (!packument?.versions) fail('The npm package does not exist, or npm could not be reached.')
   const version = wanted ?? packument['dist-tags']?.latest
   if (!version || !packument.versions[version]) fail(wanted ? 'That version is not published on npm.' : 'The package has no `latest` version on npm.')
@@ -59,8 +59,7 @@ async function resolveGitHub(source: Extract<SubmissionSource, { kind: 'github' 
     url: `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${path ? `${path}/` : ''}package.json`,
     scope: SCOPE,
   })
-  if (typeof packageJson?.name !== 'string' || !PACKAGE_PATTERN.test(packageJson.name))
-    fail('The GitHub source has no `package.json` with a valid package name in that folder.')
+  if (!isPackageName(packageJson?.name)) fail('The GitHub source has no `package.json` with a valid package name in that folder.')
   const pkg = packageJson.name
 
   const onNpm = await npmHasPackage({ pkg, scope: SCOPE })
