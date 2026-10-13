@@ -4,7 +4,7 @@
   "artifact": {
     "kind": "npm",
     "package": "@kubb/adapter-oas",
-    "version": "5.8.3"
+    "version": "5.8.4"
   },
   "repository": {
     "url": "https://github.com/kubb-labs/kubb/tree/main/packages/adapter-oas"
@@ -12,7 +12,7 @@
   "submittedAt": "2026-10-12T20:11:53Z",
   "submittedBy": "stijnvanhulle",
   "publishedAt": "2026-10-12T20:11:53Z",
-  "reviewedAt": "2026-10-13T11:37:17Z",
+  "reviewedAt": "2026-10-13T13:10:48Z",
   "categories": [
     "openapi"
   ]
