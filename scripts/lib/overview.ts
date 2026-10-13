@@ -8,6 +8,7 @@ const INSTALL_COMMAND = /\b(?:kubb\s+add|npm\s+install|npm\s+i(?=\s|$)|pnpm\s+ad
 export function overviewProblems(overview: string): Array<string> {
   const problems: Array<string> = []
   if (!overview.trim()) problems.push('the overview is empty')
-  if (INSTALL_COMMAND.test(overview)) problems.push('the overview contains an install command (kubb add, npm install, npm i, pnpm add, or yarn add). Remove it.')
+  if (INSTALL_COMMAND.test(overview))
+    problems.push('the overview contains an install command (kubb add, npm install, npm i, pnpm add, or yarn add). Remove it.')
   return problems
 }
