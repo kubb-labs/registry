@@ -11,7 +11,7 @@ import { existsSync } from 'node:fs'
 import { setOutput, writeMarkdown } from './lib/actions.ts'
 import { writeRecord } from './lib/changes.ts'
 import { artifactLabel, checkArtifact } from './lib/check.ts'
-import { fetchLatestRelease, resolveTagCommit, versionOfTag } from './lib/github.ts'
+import { fetchLatestRelease, releaseOfTag, resolveTagCommit } from './lib/github.ts'
 import { fetchJson } from './lib/http.ts'
 import { PACKAGE_PATTERN, parseCategories, parseIssueForm, parseSource, repositoryUrlFromNpm, type SubmissionSource } from './lib/issueForm.ts'
 import { loadCategories } from './lib/load.ts'
@@ -74,8 +74,7 @@ async function resolveGitHub(source: Extract<SubmissionSource, { kind: 'github' 
     fail(
       'The package is not on npm, so it installs from GitHub, which needs it at the repository root. Publish it to npm, or submit a repository that holds it at its root.',
     )
-  const tagged = versionOfTag(source.ref)
-  const release = tagged ? { tag: source.ref!, version: tagged } : await fetchLatestRelease({ owner, repo, scope: SCOPE })
+  const release = releaseOfTag(source.ref) ?? (await fetchLatestRelease({ owner, repo, scope: SCOPE }))
   if (!release) fail('The package is not on npm, and the repository has no GitHub release with a semver tag such as `v1.2.0`. Create one.')
   const commit = await resolveTagCommit({ owner, repo, tag: release.tag, scope: SCOPE })
   if (!commit) fail('The release tag could not be read from the repository.')

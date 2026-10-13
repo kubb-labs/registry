@@ -23,10 +23,12 @@ type Repository = { owner: string; repo: string }
 type GitObject = { object?: { type?: string; sha?: string } }
 
 /**
- * The version a release tag names: `v1.2.0` and `1.2.0` both give `1.2.0`. Null for any other tag.
+ * A release tag and the version it names: `v1.2.0` and `1.2.0` both name `1.2.0`. Null for any other tag.
  */
-export function versionOfTag(tag: unknown): string | null {
-  return typeof tag === 'string' ? (tag.match(RELEASE_TAG)?.[1] ?? null) : null
+export function releaseOfTag(tag: unknown): { tag: string; version: string } | null {
+  if (typeof tag !== 'string') return null
+  const version = tag.match(RELEASE_TAG)?.[1]
+  return version ? { tag, version } : null
 }
 
 /**
@@ -48,8 +50,7 @@ export async function resolveTagCommit({ owner, repo, tag, scope }: Repository &
  */
 export async function fetchLatestRelease({ owner, repo, scope }: Repository & { scope: string }): Promise<{ tag: string; version: string } | null> {
   const release = await fetchJson<{ tag_name?: unknown }>({ url: `${API}/repos/${owner}/${repo}/releases/latest`, headers: githubHeaders, scope })
-  const version = versionOfTag(release?.tag_name)
-  return version ? { tag: release!.tag_name as string, version } : null
+  return releaseOfTag(release?.tag_name)
 }
 
 /**

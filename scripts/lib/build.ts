@@ -86,7 +86,7 @@ export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ ind
     slugs.map((slug) => fetchCount({ url: `https://api.github.com/repos/${slug}`, key: 'stargazers_count', headers: githubHeaders })),
   )
   const stars = new Map(slugs.map((slug, index) => [slug, counts[index]]))
-  // One package at a time, since npm rate-limits its downloads API. GitHub releases have no npm downloads.
+  // One package at a time, since npm rate-limits its downloads API.
   const downloads = new Map<string, Downloads>()
   for (const { record } of records.filter(({ record }) => record.artifact.kind === 'npm'))
     downloads.set(record.artifact.package, await fetchDownloads(record.artifact.package))

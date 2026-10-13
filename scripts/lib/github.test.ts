@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { githubArchive } from './fixtures.ts'
-import { fetchGitHubFiles, fetchLatestRelease, resolveTagCommit, versionOfTag } from './github.ts'
+import { fetchGitHubFiles, fetchLatestRelease, releaseOfTag, resolveTagCommit } from './github.ts'
 
 const commit = '0123456789abcdef0123456789abcdef01234567'
 const tagObject = 'fedcba9876543210fedcba9876543210fedcba98'
@@ -24,16 +24,16 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('versionOfTag', () => {
+describe('releaseOfTag', () => {
   it.each([
-    ['v1.2.0', '1.2.0'],
-    ['1.2.0', '1.2.0'],
-    ['v2.0.0-beta.1', '2.0.0-beta.1'],
+    ['v1.2.0', { tag: 'v1.2.0', version: '1.2.0' }],
+    ['1.2.0', { tag: '1.2.0', version: '1.2.0' }],
+    ['v2.0.0-beta.1', { tag: 'v2.0.0-beta.1', version: '2.0.0-beta.1' }],
     ['release-1.2.0', null],
     ['v1.2', null],
     [undefined, null],
-  ])('reads %s as %s', (tag, version) => {
-    expect(versionOfTag(tag)).toBe(version)
+  ])('reads %s', (tag, release) => {
+    expect(releaseOfTag(tag)).toStrictEqual(release)
   })
 })
 

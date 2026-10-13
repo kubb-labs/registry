@@ -12,15 +12,13 @@ import type { GitHubArtifact } from './types.ts'
  */
 const PREPARE_SCRIPTS = ['preinstall', 'install', 'postinstall', 'prepare', 'prepack', 'prepublish', 'publish', 'build']
 
-type PackageJson = Record<string, unknown>
-
 const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
 
 /**
  * Every file `main`, `module`, and `exports` point to, relative to the package root. Wildcard
  * targets are left out, since they name no single file.
  */
-export function entryTargets(packageJson: PackageJson): Array<string> {
+export function entryTargets(packageJson: Record<string, unknown>): Array<string> {
   const strings = (value: unknown): Array<string> => {
     if (typeof value === 'string') return [value]
     if (Array.isArray(value)) return value.flatMap(strings)
