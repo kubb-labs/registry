@@ -23,7 +23,6 @@ import type { RegistryRecord } from './lib/types.ts'
 
 const SCOPE = 'submit'
 const REVIEW_URL = 'https://github.com/kubb-labs/registry/blob/main/REVIEW.md'
-const GITHUB_USER_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/
 
 function fail(message: string): never {
   writeMarkdown({ envName: 'COMMENT_FILE', markdown: `${message}\n\nEdit this issue and intake will run again.\n` })
@@ -84,7 +83,6 @@ async function resolveGitHub(source: Extract<SubmissionSource, { kind: 'github' 
 }
 
 const author = process.env.ISSUE_AUTHOR ?? ''
-if (!GITHUB_USER_PATTERN.test(author)) fail('The issue author is not a valid GitHub username.')
 
 const fields = parseIssueForm(process.env.ISSUE_BODY ?? '')
 const parsed = parseSource(fields.Source ?? '')
