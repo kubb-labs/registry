@@ -26,7 +26,9 @@ describe('parseSource', () => {
     ['@acme/kubb-plugin-graphql@1.2.3', { kind: 'npm', package: '@acme/kubb-plugin-graphql', version: '1.2.3' }],
     ['npm:kubb-plugin-graphql', { kind: 'npm', package: 'kubb-plugin-graphql' }],
     ['https://www.npmjs.com/package/@acme/kubb-plugin-graphql/v/1.2.3', { kind: 'npm', package: '@acme/kubb-plugin-graphql', version: '1.2.3' }],
+    ['https://www.npmjs.com/package/@acme/kubb-plugin-graphql', { kind: 'npm', package: '@acme/kubb-plugin-graphql' }],
     ['https://github.com/Acme/kubb-plugins', { kind: 'github', owner: 'acme', repo: 'kubb-plugins' }],
+    ['https://github.com/acme/kubb-plugin-graphql/tree/v1.2.0', { kind: 'github', owner: 'acme', repo: 'kubb-plugin-graphql', ref: 'v1.2.0' }],
     [
       'https://github.com/acme/kubb-plugins/tree/main/packages/graphql/',
       { kind: 'github', owner: 'acme', repo: 'kubb-plugins', ref: 'main', path: 'packages/graphql' },

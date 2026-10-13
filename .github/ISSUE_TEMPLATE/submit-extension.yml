@@ -18,8 +18,8 @@ body:
         - npm package: `@acme/kubb-plugin-graphql` (uses the `latest` version)
         - npm package with a version: `@acme/kubb-plugin-graphql@1.2.3`
         - npm page: `https://www.npmjs.com/package/@acme/kubb-plugin-graphql`
-        - GitHub package folder: `https://github.com/acme/kubb-plugins/tree/main/packages/graphql`
-        - GitHub release (not on npm): `https://github.com/acme/kubb-plugin-graphql/tree/v1.2.0`, or the repository root for the latest release
+        - GitHub package folder (published on npm): `https://github.com/acme/kubb-plugins/tree/main/packages/graphql`
+        - GitHub release (not on npm, package at the repository root): `https://github.com/acme/kubb-plugin-graphql/tree/v1.2.0`, or the repository root for the latest release
       placeholder: 'https://github.com/acme/kubb-plugins/tree/main/packages/graphql'
     validations:
       required: true
