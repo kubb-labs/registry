@@ -6,8 +6,9 @@
  *
  * Writes a Markdown summary to the file in SUMMARY_FILE and sets the `count` output.
  */
-import { rmSync, writeFileSync } from 'node:fs'
+import { rmSync } from 'node:fs'
 import { setOutput, writeMarkdown } from './lib/actions.ts'
+import { writeRecord } from './lib/changes.ts'
 import { checkArtifact } from './lib/check.ts'
 import { loadRecords } from './lib/load.ts'
 import { fetchNpmLatest } from './lib/npm.ts'
@@ -31,7 +32,7 @@ for (const { record, path, registryOverview } of loadRecords()) {
     skipped.push(`- \`${record.id}\`: ${latest} not pinned (${problems.join('; ').replaceAll('`', "'")})`)
     continue
   }
-  writeFileSync(fromRoot(EXTENSIONS_DIR, path), `${JSON.stringify(next, null, 2)}\n`)
+  writeRecord({ path, record: next })
   const replacesOverview = authorOverview !== null && registryOverview !== null
   if (replacesOverview) rmSync(fromRoot(EXTENSIONS_DIR, path.replace(/\.json$/, '.md')))
   bumped.push(

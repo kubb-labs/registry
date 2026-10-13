@@ -6,22 +6,18 @@
  *
  * Usage: node scripts/approve.ts [--base <ref>]
  */
-import { writeFileSync } from 'node:fs'
 import { parseArgs } from 'node:util'
-import { changedRecordIds, mergeBase, recordAt } from './lib/changes.ts'
+import { changedRecords, recordAt, writeRecord } from './lib/changes.ts'
 import { loadRecords } from './lib/load.ts'
-import { EXTENSIONS_DIR, fromRoot } from './lib/paths.ts'
 import { approveRecord } from './lib/records.ts'
 
 const { values } = parseArgs({ options: { base: { type: 'string' } } })
-
-const base = mergeBase(values.base ?? 'origin/main')
-const changed = changedRecordIds(base)
+const { base, ids } = changedRecords(values.base)
 const now = new Date()
 
-for (const { record, path } of loadRecords().filter(({ record }) => changed.has(record.id))) {
+for (const { record, path } of loadRecords().filter(({ record }) => ids.has(record.id))) {
   const listed = recordAt({ commit: base, id: record.id }) !== undefined
-  writeFileSync(fromRoot(EXTENSIONS_DIR, path), `${JSON.stringify(approveRecord({ record, listed, now }), null, 2)}\n`)
+  writeRecord({ path, record: approveRecord({ record, listed, now }) })
   console.log(`approved ${record.id}${listed ? '' : ' (first version)'}`)
 }
-if (!changed.size) console.log('no changed records to approve')
+if (!ids.size) console.log('no changed records to approve')

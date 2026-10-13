@@ -5,18 +5,13 @@
  */
 import type { RegistryCategory } from './types.ts'
 
-/** The issue form's field labels, as GitHub renders them as `### <label>` headings. */
-export const FORM_LABELS = {
-  source: 'Source',
-  categories: 'Categories',
-  notes: 'Notes',
-} as const
-
 /** What GitHub writes for an optional field left empty. */
 const NO_RESPONSE = '_No response_'
 
 const PACKAGE_NAME = '(?:@[a-z0-9][a-z0-9._~-]*/)?[a-z0-9][a-z0-9._~-]*'
 const VERSION = '\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?'
+/** A valid npm package name, without the 214-character limit. */
+export const PACKAGE_PATTERN = new RegExp(`^${PACKAGE_NAME}$`)
 const NPM_SOURCE = new RegExp(`^(?:npm:)?(${PACKAGE_NAME})(?:@(${VERSION}))?$`)
 const NPM_PAGE = new RegExp(`^https://(?:www\\.)?npmjs\\.com/package/(${PACKAGE_NAME})(?:/v/(${VERSION}))?/?$`)
 const GITHUB_SOURCE = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+?)(?:\.git)?(?:\/tree\/([A-Za-z0-9._-]+)((?:\/[A-Za-z0-9._@-]+)*))?\/?$/
@@ -28,16 +23,15 @@ const GITHUB_SOURCE = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+
 export type SubmissionSource = { kind: 'npm'; package: string; version?: string } | { kind: 'github'; owner: string; repo: string; ref?: string; path?: string }
 
 /**
- * Splits an issue form body into its fields, keyed by heading. An empty optional field reads as ''.
+ * Splits an issue form body into its fields, keyed by the `### <label>` heading GitHub renders for
+ * each field. An empty optional field reads as ''.
  */
 export function parseIssueForm(body: string): Record<string, string> {
   const fields: Record<string, string> = {}
-  const sections = body.replaceAll('\r\n', '\n').split(/^### /m).slice(1)
-  for (const section of sections) {
-    const newline = section.indexOf('\n')
-    const label = (newline === -1 ? section : section.slice(0, newline)).trim()
-    const value = newline === -1 ? '' : section.slice(newline + 1).trim()
-    fields[label] = value === NO_RESPONSE ? '' : value
+  for (const section of body.replaceAll('\r\n', '\n').split(/^### /m).slice(1)) {
+    const [label = '', ...lines] = section.split('\n')
+    const value = lines.join('\n').trim()
+    fields[label.trim()] = value === NO_RESPONSE ? '' : value
   }
   return fields
 }

@@ -12,7 +12,7 @@
  * Usage: node scripts/validate.ts [--online] [--changed] [--base <ref>]
  */
 import { parseArgs } from 'node:util'
-import { changedRecordIds, mergeBase, recordAt } from './lib/changes.ts'
+import { changedRecords, recordAt } from './lib/changes.ts'
 import { checkArtifact } from './lib/check.ts'
 import { type LoadedRecord, loadRecords } from './lib/load.ts'
 import { EXTENSIONS_DIR } from './lib/paths.ts'
@@ -35,9 +35,8 @@ console.log(`✓ ${records.length} record(s) are well-formed`)
 
 let selected = records
 if (values.changed) {
-  const base = mergeBase(values.base ?? 'origin/main')
-  const changed = changedRecordIds(base)
-  selected = records.filter(({ record }) => changed.has(record.id))
+  const { base, ids } = changedRecords(values.base)
+  selected = records.filter(({ record }) => ids.has(record.id))
   const dateProblems = selected.flatMap(({ record, path }) =>
     recordDateProblems({ record, listed: recordAt({ commit: base, id: record.id }) }).map((problem) => `${EXTENSIONS_DIR}/${path}: ${problem}`),
   )
