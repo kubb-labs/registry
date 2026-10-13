@@ -1,6 +1,7 @@
 {
   "name": "@kubb/registry",
   "version": "0.0.0",
+  "private": true,
   "description": "The Kubb extension registry: reviewed, pinned plugins, adapters, and parsers, published as static JSON for kubb.dev, Kubb Studio, and the Kubb CLI.",
   "keywords": [
     "extensions",
@@ -15,20 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/kubb-labs/registry.git"
   },
-  "files": [
-    "dist"
-  ],
   "type": "module",
-  "main": "./dist/index.json",
-  "exports": {
-    ".": "./dist/index.json",
-    "./schemas/*": "./dist/schemas/*",
-    "./*": "./dist/*"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
   "scripts": {
     "approve": "node scripts/approve.ts",
     "build": "node scripts/build.ts",
