@@ -5,7 +5,7 @@ import { tar } from './fixtures.ts'
 import { matchesIntegrity, readTarFiles } from './npmTarball.ts'
 
 describe('readTarFiles', () => {
-  it('reads the wanted regular files, and the first copy of a path wins', () => {
+  it('reads the wanted regular files, the first copy of a path wins, and every regular file is listed', () => {
     const archive = tar([
       ['package/package.json', '{}'],
       ['package/kubb-extension.json', '{"kind":"plugin"}'],
@@ -20,6 +20,7 @@ describe('readTarFiles', () => {
         ['OVERVIEW.md', '# Overview'],
       ]),
       tooLarge: [],
+      paths: new Set(['package.json', 'kubb-extension.json', 'OVERVIEW.md']),
     })
   })
 
@@ -52,6 +53,7 @@ describe('readTarFiles', () => {
     expect(readTarFiles({ tar: archive, wanted: isDocsFile })).toStrictEqual({
       files: new Map([['docs/options.md', '# Options']]),
       tooLarge: ['docs/guides/huge.md'],
+      paths: new Set(['docs/guides/huge.md', 'docs/options.md']),
     })
   })
 })

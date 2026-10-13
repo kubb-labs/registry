@@ -5,9 +5,10 @@
  * package, and the registry overviews. With `--changed`, the dates of records changed since the
  * merge base with `--base` (default `origin/main`): `submittedAt` and `publishedAt` never change.
  *
- * Online (`--online`), the changed records or every record: the pinned npm version exists, and the
- * `kubb-extension.json` and the `docs/` folder read from its verified tarball pass the schema, the
- * semantic checks, and the docs rules.
+ * Online (`--online`), the changed records or every record: the pinned version exists, and the
+ * `kubb-extension.json` and the `docs/` folder read from its verified npm tarball or GitHub archive
+ * pass the schema, the semantic checks, and the docs rules. A GitHub release also passes the
+ * `package.json` rules, its tag still points to the pinned commit, and npm does not list its name.
  *
  * Usage: node scripts/validate.ts [--online] [--changed] [--base <ref>]
  */
@@ -53,5 +54,5 @@ if (values.online) {
     )
   ).flat()
   if (problems.length) fail(problems)
-  console.log(`✓ ${selected.length} record(s) match their pinned npm versions`)
+  console.log(`✓ ${selected.length} record(s) match their pinned versions`)
 }

@@ -108,8 +108,8 @@ settings:
 catalogs:
   default:
     '@kubb/core':
-      specifier: ^5.8.3
-      version: 5.8.3
+      specifier: ^5.8.4
+      version: 5.8.4
     '@types/node':
       specifier: 22.20.2
       version: 22.20.2
@@ -141,7 +141,7 @@ importers:
     devDependencies:
       '@kubb/core':
         specifier: 'catalog:'
-        version: 5.8.3
+        version: 5.8.4
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.2
@@ -179,12 +179,12 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kubb/ast@5.8.3':
-    resolution: {integrity: sha512-XxoXEEI7ejsdYfQkKimiiYSn0XFHsYsU9Eic5EcESOxqwvrV7QqfFLOlBu5WlqG0LTe3llUf/ENgxH5h8sNbpg==}
+  '@kubb/ast@5.8.4':
+    resolution: {integrity: sha512-BMQGMdG+0a6HSMP1olIQd2Za9nbEuiyWD8dw9DCAdaRmji9IIQTS5gGFKR+dJCJGIOlqyqF5IUKmMgd85l2DMw==}
     engines: {node: '>=22'}
 
-  '@kubb/core@5.8.3':
-    resolution: {integrity: sha512-cxfC7SgUEkCphUfQRrz1Ched/qe+kmKsG7IZumdWM3ge99554ZSFL+IZ0TNv/5a5a+2fzhFpMwl0qFjqjRgCWg==}
+  '@kubb/core@5.8.4':
+    resolution: {integrity: sha512-LqLwrORxrLhZeAcVJ5vmqv+Q4iB48owALxQk0PNXlMnFPy6zZbAWHPuDdcwxMkpu3D4v6Qn2FE+A+83x1zNFQg==}
     engines: {node: '>=22'}
 
   '@oxc-project/types@0.153.0':
@@ -1009,11 +1009,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kubb/ast@5.8.3': {}
+  '@kubb/ast@5.8.4': {}
 
-  '@kubb/core@5.8.3':
+  '@kubb/core@5.8.4':
     dependencies:
-      '@kubb/ast': 5.8.3
+      '@kubb/ast': 5.8.4
       tinyexec: 1.3.1
       unstorage: 1.17.5
       verkit: 0.5.0

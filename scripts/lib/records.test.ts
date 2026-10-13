@@ -15,6 +15,15 @@ const record: RegistryRecord = {
   categories: ['validation'],
 }
 
+const commit = '0123456789abcdef0123456789abcdef01234567'
+
+const githubRecord: RegistryRecord = {
+  ...record,
+  id: 'acme/kubb-plugin-x',
+  artifact: { kind: 'github', package: '@acme/kubb-plugin-x', version: '1.2.0', owner: 'acme', repo: 'kubb-plugin-x', tag: 'v1.2.0', commit },
+  repository: { url: 'https://github.com/acme/kubb-plugin-x' },
+}
+
 describe('validateRecord', () => {
   it('accepts a record whose id matches its path, package, and repository owner', () => {
     expect(validateRecord({ record, relativePath: 'kubb-labs/plugin-zod.json', knownCategories: known })).toStrictEqual([])
@@ -62,6 +71,44 @@ describe('validateRecord', () => {
     ['empty categories', { ...record, categories: [] }],
   ])('rejects %s', (_label, invalid) => {
     expect(validateRecord({ record: invalid, relativePath: 'kubb-labs/plugin-zod.json', knownCategories: known }).length).toBeGreaterThan(0)
+  })
+})
+
+describe('validateRecord for a GitHub release', () => {
+  const validate = (overrides: Partial<RegistryRecord>, artifact?: object) =>
+    validateRecord({
+      record: { ...githubRecord, ...overrides, artifact: { ...githubRecord.artifact, ...artifact } },
+      relativePath: 'acme/kubb-plugin-x.json',
+      knownCategories: known,
+    })
+
+  it('accepts a release pinned to its commit at the repository root', () => {
+    expect(validate({})).toStrictEqual([])
+  })
+
+  it('rejects a repository URL that points at a folder', () => {
+    expect(validate({ repository: { url: 'https://github.com/acme/kubb-plugin-x/tree/main/packages/x' } })).toStrictEqual([
+      '/repository/url must be "https://github.com/acme/kubb-plugin-x", the repository root the GitHub artifact installs from',
+    ])
+  })
+
+  it('rejects a tag that names another version', () => {
+    expect(validate({}, { tag: 'v1.3.0' })).toStrictEqual(['/artifact/tag "v1.3.0" must be "v1.2.0" or "1.2.0"'])
+  })
+
+  it('rejects a scope that is not the repository owner', () => {
+    expect(
+      validate({ id: 'acme/plugin-x' } as Partial<RegistryRecord>, { package: '@kubb/plugin-x' }).filter((error) => error.startsWith('/artifact')),
+    ).toStrictEqual(['/artifact/package scope "@kubb" must be the repository owner "@acme"'])
+  })
+
+  it.each([
+    ['a short commit', { commit: '0123456' }],
+    ['an upper-case owner', { owner: 'Acme' }],
+    ['a tag that is no version', { tag: 'latest' }],
+    ['a missing commit', { commit: undefined }],
+  ])('rejects %s', (_label, artifact) => {
+    expect(validate({}, artifact).length).toBeGreaterThan(0)
   })
 })
 
@@ -147,6 +194,15 @@ describe('bumpRecord', () => {
     expect(bumpRecord({ record, latest: '5.5.0', now: new Date('2026-10-19T08:00:00.123Z') })).toStrictEqual({
       ...record,
       artifact: { ...record.artifact, version: '5.5.0' },
+      reviewedAt: '2026-10-19T08:00:00Z',
+    })
+  })
+
+  it('moves a GitHub record to the release tag and its commit', () => {
+    const next = 'fedcba9876543210fedcba9876543210fedcba98'
+    expect(bumpRecord({ record: githubRecord, latest: '1.3.0', pin: { tag: 'v1.3.0', commit: next }, now: new Date('2026-10-19T08:00:00Z') })).toStrictEqual({
+      ...githubRecord,
+      artifact: { ...githubRecord.artifact, version: '1.3.0', tag: 'v1.3.0', commit: next },
       reviewedAt: '2026-10-19T08:00:00Z',
     })
   })

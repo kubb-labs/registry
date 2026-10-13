@@ -49,6 +49,7 @@ jobs:
         id: submit
         if: steps.existing.outputs.url == ''
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
           COMMENT_FILE: ${{ runner.temp }}/submit-comment.md

@@ -40,7 +40,7 @@ jobs:
         with:
           cache: 'false'
 
-      # Reads each pinned npm tarball. No extension code is installed or run.
+      # Reads each pinned npm tarball or GitHub release archive. No extension code is installed or run.
       - name: Build the registry
         env:
           GITHUB_TOKEN: ${{ github.token }}

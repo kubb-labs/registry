@@ -21,7 +21,7 @@ type RegistryEntry = {
   id: string // "kubb-labs/plugin-zod"
   kind: 'plugin' | 'adapter' | 'parser'
   type: 'official' | 'community'
-  artifact: { kind: 'npm'; package: string; version: string }
+  artifact: RegistryArtifact
   repository?: { url: string }
   manifest: ExtensionManifest // kubb-extension.json at the pinned version, with the record's categories and listing applied
   stats?: { downloads?: number; weekly?: number; stars?: number }
@@ -29,7 +29,13 @@ type RegistryEntry = {
   publishedAt: string
   reviewedAt: string
 }
+
+type RegistryArtifact =
+  | { kind: 'npm'; package: string; version: string }
+  | { kind: 'github'; package: string; version: string; owner: string; repo: string; tag: string; commit: string }
 ```
+
+Install an `npm` artifact as `<package>@<version>`. Install a `github` artifact as `github:<owner>/<repo>#<commit>`, never by its tag. The package sits at the repository root, `package` is the `name` in its `package.json`, and `version` is the release version that `tag` names. Skip an entry whose `artifact.kind` you do not know.
 
 `ExtensionManifest` is the content of `kubb-extension.json` ([schema](https://github.com/kubb-labs/kubb/blob/main/packages/core/schemas/kubb-extension.json), shipped in `@kubb/core`, which also exports the types). `manifest.kind` always equals `kind`. Clients ignore keys they do not know, and reject an index whose `version` is not `1`.
 
@@ -52,7 +58,7 @@ type RegistryGuide = {
 }
 ```
 
-- `overview` is the package's `docs/overview.md`. A version published before `docs/` may ship a root `OVERVIEW.md` instead. Without either, it is the registry's own overview, or `null`.
+- `overview` is the package's `docs/overview.md`. An npm version published before `docs/` may ship a root `OVERVIEW.md` instead. Without either, it is the registry's own overview, or `null`.
 - `options` is the package's `docs/options.md`, or `null`.
 - `guides` holds each `docs/guides/<id>.md`, sorted by file name, at most 50. `id` is kebab case. A version without guides has `[]`.
 - This repository always writes `options` and `guides`. A registry built before they existed leaves them out, so read a missing `options` as `null` and a missing `guides` as `[]`.

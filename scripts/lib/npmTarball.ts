@@ -10,14 +10,14 @@ import { fetchBytes, fetchJson } from './http.ts'
 /** Files larger than this are skipped instead of read. */
 export const MAX_FILE_BYTES = 256 * 1024
 /** A larger unpacked tarball is refused, so a hostile package cannot exhaust memory. */
-const MAX_TARBALL_BYTES = 64 * 1024 * 1024
+export const MAX_TARBALL_BYTES = 64 * 1024 * 1024
 const BLOCK = 512
 
 /**
- * The files read from a tarball, by path relative to the package root, and the wanted files that
- * were skipped for being larger than the limit.
+ * The files read from a tarball, by path relative to the package root, the wanted files that were
+ * skipped for being larger than the limit, and the path of every regular file in the archive.
  */
-type TarFiles = { files: Map<string, string>; tooLarge: Array<string> }
+export type TarFiles = { files: Map<string, string>; tooLarge: Array<string>; paths: Set<string> }
 
 /**
  * Reads the regular files that `wanted` accepts from an uncompressed tar archive. npm tarballs
@@ -29,6 +29,7 @@ type TarFiles = { files: Map<string, string>; tooLarge: Array<string> }
 export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: (path: string) => boolean }): TarFiles {
   const files = new Map<string, string>()
   const tooLarge: Array<string> = []
+  const paths = new Set<string>()
   const seen = new Set<string>()
   const decoder = new TextDecoder()
   const field = ({ offset, length }: { offset: number; length: number }) => decoder.decode(tar.subarray(offset, offset + length)).replace(/\0[\s\S]*$/, '')
@@ -41,6 +42,7 @@ export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: (path: 
     const prefix = field({ offset: offset + 345, length: 155 })
     const path = (prefix ? `${prefix}/${name}` : name).match(/^[^/]+\/(.+)$/)?.[1]
     offset += BLOCK
+    if ((type === '0' || type === '') && path) paths.add(path)
     if ((type === '0' || type === '') && path && !seen.has(path) && wanted(path)) {
       seen.add(path)
       if (size > MAX_FILE_BYTES) tooLarge.push(path)
@@ -48,7 +50,7 @@ export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: (path: 
     }
     offset += Math.ceil(size / BLOCK) * BLOCK
   }
-  return { files, tooLarge }
+  return { files, tooLarge, paths }
 }
 
 /**
