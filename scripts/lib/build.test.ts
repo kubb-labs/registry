@@ -26,32 +26,31 @@ const official: RegistryRecord = {
 
 const manifest = { kind: 'plugin', name: 'plugin-x', export: 'pluginX', displayName: 'X', description: 'Generates X.', category: 'types' }
 
-/** The gzipped tarball and the packument npm answers for one version. */
-function publish({ pkg, version, files }: { pkg: string; version: string; files: Array<[string, string]> }) {
+/** The routes npm answers for one version: its packument and its gzipped tarball. */
+function publish({ pkg, version, files }: { pkg: string; version: string; files: Array<[string, string]> }): Array<[string, unknown]> {
   const tarball = gzipSync(tar(files.map(([name, content]) => [`package/${name}`, content])))
   const url = `https://registry.npmjs.org/${pkg}/-/${version}.tgz`
   const integrity = `sha512-${createHash('sha512').update(tarball).digest('base64')}`
-  return { url, tarball, packument: { versions: { [version]: { dist: { tarball: url, integrity } } } } }
+  return [
+    [`https://registry.npmjs.org/${pkg}`, { versions: { [version]: { dist: { tarball: url, integrity } } } }],
+    [url, tarball],
+  ]
 }
 
-const x = publish({
-  pkg: '@acme/kubb-plugin-x',
-  version: '1.2.0',
-  files: [
-    ['kubb-extension.json', JSON.stringify(manifest)],
-    ['OVERVIEW.md', 'Generates X.\n'],
-  ],
-})
-const old = publish({ pkg: '@kubb/plugin-old', version: '5.0.0', files: [['package.json', '{}']] })
-
-function answer(url: string): unknown {
-  if (url === 'https://registry.npmjs.org/@acme/kubb-plugin-x') return x.packument
-  if (url === 'https://registry.npmjs.org/@kubb/plugin-old') return old.packument
-  if (url.startsWith('https://api.npmjs.org/downloads/point/last-month/')) return { downloads: 100 }
-  if (url.startsWith('https://api.npmjs.org/downloads/point/last-week/')) return { downloads: 25 }
-  if (url === 'https://api.github.com/repos/acme/kubb-plugins') return { stargazers_count: 7 }
-  return undefined
-}
+const routes = new Map<string, unknown>([
+  ...publish({
+    pkg: '@acme/kubb-plugin-x',
+    version: '1.2.0',
+    files: [
+      ['kubb-extension.json', JSON.stringify(manifest)],
+      ['OVERVIEW.md', 'Generates X.\n'],
+    ],
+  }),
+  ...publish({ pkg: '@kubb/plugin-old', version: '5.0.0', files: [['package.json', '{}']] }),
+  ['https://api.npmjs.org/downloads/point/last-month/@acme/kubb-plugin-x', { downloads: 100 }],
+  ['https://api.npmjs.org/downloads/point/last-week/@acme/kubb-plugin-x', { downloads: 25 }],
+  ['https://api.github.com/repos/acme/kubb-plugins', { stargazers_count: 7 }],
+])
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -64,11 +63,10 @@ describe('buildRegistry', () => {
     const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.stubGlobal(
       'fetch',
-      vi.fn(async (input: string) => {
-        if (input === x.url) return new Response(x.tarball)
-        if (input === old.url) return new Response(old.tarball)
-        const body = answer(input)
-        return body === undefined ? new Response(null, { status: 404 }) : Response.json(body)
+      vi.fn(async (url: string) => {
+        const body = routes.get(url)
+        if (body === undefined) return new Response(null, { status: 404 })
+        return body instanceof Uint8Array ? new Response(body) : Response.json(body)
       }),
     )
     const records: Array<LoadedRecord> = [

@@ -4,11 +4,12 @@ import { tar } from './fixtures.ts'
 import { matchesIntegrity, readTarFiles } from './npmTarball.ts'
 
 describe('readTarFiles', () => {
-  it('reads wanted files at the package root only', () => {
+  it('reads wanted regular files at the package root only', () => {
     const archive = tar([
       ['package/package.json', '{}'],
       ['package/kubb-extension.json', '{"kind":"plugin"}'],
       ['package/docs/OVERVIEW.md', 'nested'],
+      ['package/OVERVIEW.md', '/etc/passwd', '2'],
       ['package/OVERVIEW.md', '# Overview'],
     ])
 
@@ -18,10 +19,6 @@ describe('readTarFiles', () => {
         ['OVERVIEW.md', '# Overview'],
       ]),
     )
-  })
-
-  it('skips links', () => {
-    expect(readTarFiles({ tar: tar([['package/OVERVIEW.md', '/etc/passwd', '2']]), wanted: new Set(['OVERVIEW.md']) })).toStrictEqual(new Map())
   })
 })
 

@@ -22,22 +22,20 @@ export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: Readonl
   const files = new Map<string, string>()
   const decoder = new TextDecoder()
   const field = ({ offset, length }: { offset: number; length: number }) => decoder.decode(tar.subarray(offset, offset + length)).replace(/\0[\s\S]*$/, '')
-  let offset = 0
-  while (offset + BLOCK <= tar.length) {
+  for (let offset = 0; offset + BLOCK <= tar.length;) {
     const name = field({ offset, length: 100 })
     if (!name) break
     const size = Number.parseInt(field({ offset: offset + 124, length: 12 }).trim() || '0', 8)
     if (!Number.isFinite(size) || size < 0) throw new Error('corrupt tar header')
     const type = field({ offset: offset + 156, length: 1 })
     const prefix = field({ offset: offset + 345, length: 155 })
-    const path = prefix ? `${prefix}/${name}` : name
-    const data = offset + BLOCK
-    const file = path.match(/^[^/]+\/([^/]+)$/)?.[1]
+    const file = (prefix ? `${prefix}/${name}` : name).match(/^[^/]+\/([^/]+)$/)?.[1]
+    offset += BLOCK
     if ((type === '0' || type === '') && file && wanted.has(file) && !files.has(file)) {
       if (size > MAX_FILE_BYTES) throw new Error(`${file} is larger than ${MAX_FILE_BYTES} bytes`)
-      files.set(file, decoder.decode(tar.subarray(data, data + size)))
+      files.set(file, decoder.decode(tar.subarray(offset, offset + size)))
     }
-    offset = data + Math.ceil(size / BLOCK) * BLOCK
+    offset += Math.ceil(size / BLOCK) * BLOCK
   }
   return files
 }
@@ -50,14 +48,12 @@ export function matchesIntegrity({ bytes, integrity }: { bytes: Uint8Array; inte
   return expected !== undefined && createHash('sha512').update(bytes).digest('base64') === expected
 }
 
-/**
- * The files an npm version ships at its package root, `null` for each one it does not ship, or an
- * error when the version or its tarball cannot be read.
- */
-export type PackageFiles = { status: 'ok'; files: Map<string, string> } | { status: 'error'; message: string }
-
 type Packument = { versions?: Record<string, { dist?: { tarball?: string; integrity?: string } }> }
 
+/**
+ * The wanted files an npm version ships at its package root, or an error when the version or its
+ * tarball cannot be read.
+ */
 export async function fetchPackageFiles({
   pkg,
   version,
@@ -68,7 +64,7 @@ export async function fetchPackageFiles({
   version: string
   files: Array<string>
   scope: string
-}): Promise<PackageFiles> {
+}): Promise<{ status: 'ok'; files: Map<string, string> } | { status: 'error'; message: string }> {
   const packument = await fetchJson<Packument>({ url: `https://registry.npmjs.org/${pkg}`, scope })
   if (!packument) return { status: 'error', message: `could not read ${pkg} from npm` }
   const dist = packument.versions?.[version]?.dist

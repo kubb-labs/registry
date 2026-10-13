@@ -88,15 +88,18 @@ jobs:
           cache: 'false'
           force-install: 'true'
 
-      - name: Build the registry
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: pnpm build
+      # The dist/ the build job made for Pages, so npm and Pages ship the same files.
+      - name: Download the build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}
 
       # Every release is a new minor version, numbered by this workflow's run.
       - name: Publish
         env:
           RUN_NUMBER: ${{ github.run_number }}
         run: |
+          mkdir dist && tar -xf "$RUNNER_TEMP/artifact.tar" -C dist
           pnpm version "0.$RUN_NUMBER.0" --no-git-tag-version
           pnpm publish --no-git-checks
