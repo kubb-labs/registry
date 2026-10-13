@@ -2,31 +2,20 @@
 
 The reviewed registry of Kubb plugins, adapters, and parsers behind [kubb.dev/extensions](https://kubb.dev/extensions), [Kubb Studio](https://kubb.studio), and the Kubb CLI (`kubb add`, `kubb update`, `kubb list`).
 
-Each record pins one npm version. Merging a record approves that exact version. The [registry protocol](PROTOCOL.md) is the contract clients read, so anyone can host a registry by serving the same static JSON.
-
-## Use the registry
-
-kubb.dev clones this repository on every deploy, builds the records into static JSON with `pnpm build`, and serves the result at `https://kubb.dev/registry`, the base URL the CLI reads. The deploy workflow redeploys kubb.dev on every merge and once a day, so download and star counts stay current. Besides `index.json`, it serves `<owner>/<slug>.json` for one extension and its docs, `categories.json`, and the JSON Schemas under `schemas/`.
+Each record pins one npm version, and merging a record approves that exact version. kubb.dev builds the records with `pnpm build` on every deploy and serves the result at `https://kubb.dev/registry`. Clients read it through the [registry protocol](PROTOCOL.md), so anyone can host a registry by serving the same static JSON.
 
 ## Submit an extension
 
-1. Publish the package to npm with a `kubb-extension.json` at the package root and a `docs/` folder with `overview.md`, plus an optional `options.md` and `guides/` (see [Docs](#docs)). List `kubb-extension.json` and `docs` in `files` in `package.json`. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin).
-2. Open a [submission issue](https://github.com/kubb-labs/registry/issues/new?template=submit-extension.yml). In **Source**, paste the npm package name (optionally `name@version`), its npmjs.com page, or the GitHub URL of the repository or package folder. Tick the categories that fit. The first tick is the main one.
-3. Intake opens a review pull request with the record. It pins the version you gave, or the npm `latest` version. Problems with the manifest or the docs are listed in the pull request for the reviewer, and do not stop intake.
-4. A maintainer reviews the package against [REVIEW.md](REVIEW.md), completes the listing, stamps the approval with `pnpm approve`, and merges it.
+1. Publish the package to npm with `kubb-extension.json` and a `docs/` folder at the package root. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin) and [Extension docs](https://kubb.dev/docs/5.x/reference/kit/extension-docs).
+2. Open a [submission issue](https://github.com/kubb-labs/registry/issues/new?template=submit-extension.yml) with the npm package name, its npmjs.com page, or its GitHub URL. Tick the categories that fit, main one first.
+3. Intake opens a review pull request that pins the version you gave, or npm `latest`. Intake lists any problems with the manifest or the docs in that pull request for the reviewer.
+4. A maintainer reviews the package against [REVIEW.md](REVIEW.md), runs `pnpm approve`, and merges.
 
-Editing the issue runs intake again until a review pull request exists. After that, the reviewer owns the pull request and reads later edits from the issue.
-
-Every week, a workflow opens one pull request that moves each pin to the npm `latest` version that passes validation.
+Editing the issue reruns intake until the review pull request exists.
 
 ## Records
 
-A record lives at `extensions/<owner>/<slug>.json`:
-
-- `<owner>` is the GitHub owner of the source repository, in lowercase.
-- `<slug>` is the npm package name without its scope: `@kubb/plugin-zod` gives `plugin-zod`.
-- Both match `[a-z0-9]+(?:-[a-z0-9]+)*`.
-- `kind` and `category` are reserved owners, since kubb.dev serves its filter pages at `/extensions/kind/` and `/extensions/category/`.
+A record lives at `extensions/<owner>/<slug>.json`. `<owner>` is the GitHub owner of the source repository in lowercase, and `<slug>` is the npm package name without its scope. Both are kebab case. `kind` and `category` are reserved owners, since kubb.dev uses them for its filter pages.
 
 ```json
 {
@@ -42,66 +31,35 @@ A record lives at `extensions/<owner>/<slug>.json`:
 }
 ```
 
-| Field            | Written by | Meaning                                                                                                            |
-| ---------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
-| `id`             | Bot        | `<owner>/<slug>`. Must equal the file path.                                                                        |
-| `artifact`       | Bot        | The install pin: an exact npm version.                                                                             |
-| `repository.url` | Bot        | The source on GitHub, optionally the package folder.                                                               |
-| `submittedAt`    | Bot        | When the extension was submitted. Never changes.                                                                   |
-| `publishedAt`    | Reviewer   | When the first version was approved, set by `pnpm approve`. Never changes after that.                              |
-| `reviewedAt`     | Reviewer   | When the pinned version was approved, set by `pnpm approve` on every new pin.                                      |
-| `categories`     | Reviewer   | Slugs from [`categories.json`](categories.json). The first is the main one and replaces the manifest's `category`. |
-| `listing`        | Reviewer   | Optional overrides for `displayName`, `description`, `tags`, and `icon`.                                           |
+| Field            | Written by | Meaning                                                                                              |
+| ---------------- | ---------- | ---------------------------------------------------------------------------------------------------- |
+| `id`             | Bot        | `<owner>/<slug>`, equal to the file path.                                                            |
+| `artifact`       | Bot        | The exact npm version to install.                                                                    |
+| `repository.url` | Bot        | The source on GitHub, optionally the package folder.                                                 |
+| `submittedAt`    | Bot        | When the extension was submitted. Never changes.                                                     |
+| `publishedAt`    | Reviewer   | When the first version was approved. Never changes.                                                  |
+| `reviewedAt`     | Reviewer   | When the pinned version was approved.                                                                |
+| `categories`     | Reviewer   | Slugs from [`categories.json`](categories.json), main one first. Replaces the manifest's `category`. |
+| `listing`        | Reviewer   | Optional overrides for `displayName`, `description`, `tags`, and `icon`.                             |
 
-Timestamps are UTC, to the second, such as `2026-10-12T20:00:00Z`. The JSON Schema is [`schemas/registry-record.json`](schemas/registry-record.json). A record owned by `kubb-labs` is `official`, every other record is `community`.
+Timestamps are UTC to the second. Records owned by `kubb-labs` are `official`, all others are `community`. The schema is [`schemas/registry-record.json`](schemas/registry-record.json).
 
-### Docs
-
-kubb.dev builds an extension's pages from the Markdown its pinned npm version ships in `docs/`:
-
-| File                  | Page on kubb.dev                                         | Required |
-| --------------------- | -------------------------------------------------------- | -------- |
-| `docs/overview.md`    | `/extensions/<owner>/<slug>`, also the summary in Studio | Yes      |
-| `docs/options.md`     | `/extensions/<owner>/<slug>/options`                     | No       |
-| `docs/guides/<id>.md` | `/extensions/<owner>/<slug>/guides/<id>`                 | No       |
-
-Each file starts with a `# Title` line. The first paragraph after it is the description that guide cards, search, and page metadata show. Files have no frontmatter. Name each guide file in kebab case, such as `base-url.md`. Its id is the file name without `.md`, and guides appear in file name order, at most 50. Each file is at most 256 KiB.
-
-Write plain Markdown with absolute links. Code fences can carry a title, such as ` ```typescript [kubb.config.ts] `. These also render: the `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, and `> [!WARNING]` callouts, and the components `::code-group`, `::field-group` with `:::field`, `::steps`, `::code-collapse`, and `::tabs` with `:::tabs-item`. Raw HTML, `<!--@include`, twoslash, and other components do not render. The [protocol](PROTOCOL.md#render-the-markdown) has the rules clients follow.
-
-When the pinned version ships no `docs/overview.md`, the registry uses the package's root `OVERVIEW.md`, which versions published before `docs/` may ship. Without either, it uses `extensions/<owner>/<slug>.md`, which the reviewer writes before approval. When a later version ships its own overview, that one takes precedence and the bump removes the registry copy.
-
-An overview explains, in this order and without fixed headings: what the extension does, how it works when that is not obvious, the setup it needs, and the options and limits worth knowing. It has no install commands, badges, changelog, license text, or marketing.
+If the pinned version ships neither `docs/overview.md` nor a root `OVERVIEW.md` (from before `docs/` existed), the reviewer writes `extensions/<owner>/<slug>.md`. The bump to a version with its own overview deletes that file.
 
 ## Validation
 
-Validation never installs, imports, or runs an extension. Files are read from the npm tarball of the pinned version, after checking it against the SHA-512 integrity npm publishes, and nothing is extracted to disk.
+Validation reads files from the npm tarball after checking its integrity. It never installs, imports, or runs an extension.
 
 ```sh
-pnpm validate                                    # offline, every record
-pnpm validate --changed --base origin/main       # plus the dates of changed records
-pnpm validate --online --changed --base origin/main
+pnpm validate                                        # every record, offline
+pnpm validate --online --changed --base origin/main  # changed records, against npm
 ```
 
-Offline, for every record:
+Offline, it checks every record against its schema, its path, and `categories.json`. No two records may share a package. With `--changed`, it also checks that `submittedAt` and `publishedAt` did not move. Online, it checks that the pinned version exists, that its `kubb-extension.json` matches the [manifest schema](https://github.com/kubb-labs/kubb/blob/main/packages/core/schemas/kubb-extension.json), and that its docs follow [Extension docs](https://kubb.dev/docs/5.x/reference/kit/extension-docs).
 
-- The record matches the schema, and `id` equals its path, its package slug, and its repository owner, which is not `kind` or `category`.
-- Every category is in `categories.json`, and no package has two records.
-- Every registry overview belongs to a record and has no install commands.
-- With `--changed`, `submittedAt` and `publishedAt` stay as they were at the merge base, and every date a change writes is a UTC timestamp to the second.
+A community version must ship a manifest. An official version released before manifests may omit it, but the build leaves it out of the index until a bump pins a version that ships one.
 
-Online (`--online`), for the changed records or every record:
-
-- The pinned npm version exists.
-- `kubb-extension.json` at that version matches the [manifest JSON Schema](https://github.com/kubb-labs/kubb/blob/main/packages/core/schemas/kubb-extension.json) that `@kubb/core` ships: `kind`, `name`, and `export` are present, `export` is a JavaScript identifier, and `compatibility` has only `kubb` and `node`.
-- Option keys are unique, every `select` has `choices`, and a select's `default` equals one of its choice values.
-- An overview exists, and it has no install commands (`kubb add`, `npm install`, `npm i`, `pnpm add`, `yarn add`). It is `docs/overview.md`, a root `OVERVIEW.md`, or the registry's `extensions/<owner>/<slug>.md`.
-- Every file in `docs/` starts with a `# Title` line and a description paragraph. It has no raw HTML outside code fences, no `<!--@include`, no twoslash code fence, and no `::` component besides the ones in [Docs](#docs).
-- Every guide id is kebab case, the version ships at most 50 guides, and no file read from the tarball is larger than 256 KiB.
-
-A community version must ship a manifest. An official version released before manifests may omit it. Its record stays valid, but the build leaves it out of the index until a bump pins a version that ships one.
-
-The `Validate` workflow runs the online check on changed records. Pull requests opened by the registry workflows use the default `GITHUB_TOKEN`, so they do not trigger it; run the command above, or re-run the check from the pull request.
+Pull requests the registry workflows open do not trigger the `Validate` check. Run the online command yourself, or re-run the check from the pull request.
 
 ## Workflows
 
@@ -114,16 +72,16 @@ The `Validate` workflow runs the online check on changed records. Pull requests 
 
 ## Development
 
-Requires Node.js 22.18 or later, which runs the TypeScript scripts directly, and pnpm.
+Requires pnpm and Node.js 22.18 or later, which runs the TypeScript scripts directly.
 
 ```sh
 pnpm install
 pnpm build       # writes dist/ from the records and their pinned npm versions
-pnpm approve     # stamps the changed records as approved now, before merging
+pnpm approve     # stamps the changed records as approved, before merging
 pnpm test
 pnpm typecheck
 pnpm lint
 pnpm format
 ```
 
-kubb.dev runs `scripts/build.ts` from its own checkout without installing this repository's packages, so the build resolves `ajv` and `ajv-formats` from kubb.dev. Keep the build to those packages, or add a new one to kubb.dev first.
+kubb.dev runs `scripts/build.ts` without installing this repository's packages, so the build's imports resolve from kubb.dev. Add a new build dependency to kubb.dev first.
