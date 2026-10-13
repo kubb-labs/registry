@@ -26,6 +26,7 @@ A record lives at `extensions/<owner>/<slug>.json`:
 - `<owner>` is the GitHub owner of the source repository, in lowercase.
 - `<slug>` is the npm package name without its scope: `@kubb/plugin-zod` gives `plugin-zod`.
 - Both match `[a-z0-9]+(?:-[a-z0-9]+)*`.
+- `kind` and `category` are reserved owners, since kubb.dev serves its filter pages at `/extensions/kind/` and `/extensions/category/`.
 
 ```json
 {
@@ -72,7 +73,7 @@ pnpm validate --online --changed --base origin/main
 
 Offline, for every record:
 
-- The record matches the schema, and `id` equals its path, its package slug, and its repository owner.
+- The record matches the schema, and `id` equals its path, its package slug, and its repository owner, which is not `kind` or `category`.
 - Every category is in `categories.json`, and no package has two records.
 - Every registry overview belongs to a record and has no install commands.
 - With `--changed`, `submittedAt` and `publishedAt` stay as they were at the merge base, and every date a change writes is a UTC timestamp to the second.
