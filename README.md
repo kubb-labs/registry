@@ -6,12 +6,11 @@ Each record pins one npm version. Merging a record approves that exact version. 
 
 ## Use the registry
 
-The publish workflow builds the records into static JSON on every merge and once a day, so download and star counts stay current.
+The publish workflow builds the records into static JSON on every merge and once a day, so download and star counts stay current. It pushes the result to the [`dist`](https://github.com/kubb-labs/registry/tree/dist) branch and redeploys kubb.dev, which serves that branch.
 
 | Where                         | URL                                                                  |
 | ----------------------------- | -------------------------------------------------------------------- |
 | kubb.dev (what the CLI reads) | `https://kubb.dev/registry/index.json`                               |
-| GitHub Pages                  | `https://kubb-labs.github.io/registry/index.json`                    |
 | jsDelivr                      | `https://cdn.jsdelivr.net/npm/@kubb/registry@latest/dist/index.json` |
 | unpkg                         | `https://unpkg.com/@kubb/registry@latest/dist/index.json`            |
 
@@ -112,7 +111,7 @@ The `Validate` workflow runs the online check on changed records. Pull requests 
 | [Validate](.github/workflows/validate.yml) | Pull requests                | Type checks, lints, tests, and validates every record offline and the changed ones online. |
 | [Submit](.github/workflows/submit.yml)     | A `submission` issue changes | Writes the record and opens the review pull request.                                       |
 | [Bump](.github/workflows/bump.yml)         | Mondays                      | Opens one pull request that moves pins to npm `latest`.                                    |
-| [Publish](.github/workflows/publish.yml)   | Pushes to `main`, and daily  | Builds `dist/`, deploys it to GitHub Pages, and releases it to npm as `@kubb/registry`.    |
+| [Publish](.github/workflows/publish.yml)   | Pushes to `main`, and daily  | Builds `dist/`, pushes it to the `dist` branch, redeploys kubb.dev, and releases to npm.   |
 
 ## Development
 
