@@ -105,33 +105,60 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/node':
+      specifier: 22.20.2
+      version: 22.20.2
+    ajv:
+      specifier: ^8.20.0
+      version: 8.20.0
+    ajv-formats:
+      specifier: ^3.0.1
+      version: 3.0.1
+    oxfmt:
+      specifier: ^0.72.0
+      version: 0.72.0
+    oxlint:
+      specifier: ^1.87.0
+      version: 1.87.0
+    typescript:
+      specifier: ^6.0.3
+      version: 6.0.3
+    vitest:
+      specifier: ^5.0.3
+      version: 5.0.3
+    yaml:
+      specifier: ^2.9.1
+      version: 2.9.1
+
 importers:
 
   .:
     devDependencies:
       '@types/node':
-        specifier: 22.20.1
-        version: 22.20.1
+        specifier: 'catalog:'
+        version: 22.20.2
       ajv:
-        specifier: ^8.20.0
+        specifier: 'catalog:'
         version: 8.20.0
       ajv-formats:
-        specifier: ^3.0.1
+        specifier: 'catalog:'
         version: 3.0.1(ajv@8.20.0)
       oxfmt:
-        specifier: ^0.72.0
+        specifier: 'catalog:'
         version: 0.72.0
       oxlint:
-        specifier: ^1.87.0
+        specifier: 'catalog:'
         version: 1.87.0
       typescript:
-        specifier: ^6.0.3
+        specifier: 'catalog:'
         version: 6.0.3
       vitest:
-        specifier: ^5.0.3
-        version: 5.0.3(@types/node@22.20.1)(vite@8.3.4(@types/node@22.20.1)(yaml@2.9.1))
+        specifier: 'catalog:'
+        version: 5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1))
       yaml:
-        specifier: ^2.9.1
+        specifier: 'catalog:'
         version: 2.9.1
 
 packages:
@@ -501,8 +528,8 @@ packages:
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
-  '@types/node@22.20.1':
-    resolution: {integrity: sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==}
+  '@types/node@22.20.2':
+    resolution: {integrity: sha512-xlvWf4Vs9n1PEVYwP1n4vvG07M6y8WgvJ2t0vbrWTmijsIHp1cS+uJ2kMIRdY3nHZK0nCYKrPeD171+SzF4/zw==}
 
   '@vitest/mocker@5.0.3':
     resolution: {integrity: sha512-T8sWAIbkSyAjkwTcaEc3Iu0o9A27X1/kdXrizhZkGuSKScRQtRzclfAMpOTcGdXCsqxeWlpGy3XjqaW8CpLORg==}
@@ -1014,18 +1041,18 @@ snapshots:
 
   '@types/estree@1.0.9': {}
 
-  '@types/node@22.20.1':
+  '@types/node@22.20.2':
     dependencies:
       undici-types: 6.21.0
 
-  '@vitest/mocker@5.0.3(vite@8.3.4(@types/node@22.20.1)(yaml@2.9.1))':
+  '@vitest/mocker@5.0.3(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.0.3
       estree-walker: 3.0.3
       magic-string: 1.4.3
     optionalDependencies:
-      vite: 8.3.4(@types/node@22.20.1)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@22.20.2)(yaml@2.9.1)
 
   '@vitest/spy@5.0.3': {}
 
@@ -1222,7 +1249,7 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  vite@8.3.4(@types/node@22.20.1)(yaml@2.9.1):
+  vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -1230,14 +1257,14 @@ snapshots:
       rolldown: 1.2.13
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 22.20.1
+      '@types/node': 22.20.2
       fsevents: 2.3.3
       yaml: 2.9.1
 
-  vitest@5.0.3(@types/node@22.20.1)(vite@8.3.4(@types/node@22.20.1)(yaml@2.9.1)):
+  vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.3(vite@8.3.4(@types/node@22.20.1)(yaml@2.9.1))
+      '@vitest/mocker': 5.0.3(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -1248,10 +1275,10 @@ snapshots:
       tinybench: 6.2.2
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.3.4(@types/node@22.20.1)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@22.20.2)(yaml@2.9.1)
       why-is-node-running: 3.2.1
     optionalDependencies:
-      '@types/node': 22.20.1
+      '@types/node': 22.20.2
     transitivePeerDependencies:
       - msw
 
