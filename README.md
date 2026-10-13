@@ -80,7 +80,7 @@ Offline, for every record:
 Online (`--online`), for the changed records or every record:
 
 - The pinned npm version exists.
-- `kubb-extension.json` at that version matches [`schemas/kubb-extension.json`](schemas/kubb-extension.json): `kind`, `name`, and `export` are present, `export` is a JavaScript identifier, and `compatibility` has only `kubb` and `node`.
+- `kubb-extension.json` at that version matches the [manifest JSON Schema](https://github.com/kubb-labs/kubb/blob/main/packages/core/schemas/kubb-extension.json) that `@kubb/core` ships: `kind`, `name`, and `export` are present, `export` is a JavaScript identifier, and `compatibility` has only `kubb` and `node`.
 - Option keys are unique, every `select` has `choices`, and a select's `default` equals one of its choice values.
 - An overview exists, the author's `OVERVIEW.md` or the registry's `extensions/<owner>/<slug>.md`, and it has no install commands (`kubb add`, `npm install`, `npm i`, `pnpm add`, `yarn add`).
 

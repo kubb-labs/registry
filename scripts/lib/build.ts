@@ -2,7 +2,7 @@ import { checkArtifact } from './check.ts'
 import { fetchJson } from './http.ts'
 import type { LoadedRecord } from './load.ts'
 import { applyListing, parseRepositoryUrl, registryTypeOf, toTimestamp } from './records.ts'
-import type { RegistryDetail, RegistryIndex } from './types.ts'
+import type { RegistryDetail, RegistryIndex } from '@kubb/core'
 
 const scope = 'build'
 

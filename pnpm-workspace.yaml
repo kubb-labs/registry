@@ -1,6 +1,7 @@
 allowBuilds:
 
 catalog:
+  '@kubb/core': ^5.8.0
   '@types/node': 22.20.2
   ajv: ^8.20.0
   ajv-formats: ^3.0.1
@@ -12,6 +13,7 @@ catalog:
 
 minimumReleaseAge: 2880 # 48 hours, matches CI's SAFE_CHAIN_MINIMUM_PACKAGE_AGE_HOURS
 minimumReleaseAgeExclude:
+  - '@kubb/*'
   - '@types/*'
 pmOnFail: warn
 resolutionMode: highest

@@ -4,10 +4,10 @@
  */
 import { Ajv } from 'ajv'
 import addFormats from 'ajv-formats'
-import manifestSchema from '../../schemas/kubb-extension.json' with { type: 'json' }
+import { type ExtensionManifest, manifestProblems } from '@kubb/core'
+import manifestSchema from '@kubb/core/schemas/kubb-extension.json' with { type: 'json' }
 import recordSchema from '../../schemas/registry-record.json' with { type: 'json' }
-import { manifestProblems } from './manifestChecks.ts'
-import type { ExtensionManifest, RegistryRecord } from './types.ts'
+import type { RegistryRecord } from './types.ts'
 
 /** Owners and slugs: lowercase words joined by single hyphens. */
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -79,8 +79,8 @@ export function validateRecord({
 }
 
 /**
- * Checks a `kubb-extension.json` against its JSON Schema, then against the semantic checks the
- * schema cannot express (manifestChecks.ts). Returns the problems found, empty when valid.
+ * Checks a `kubb-extension.json` against the JSON Schema `@kubb/core` ships, then against the
+ * semantic checks the schema cannot express (`manifestProblems`). Returns the problems found, empty when valid.
  */
 export function validateManifest(manifest: unknown): Array<string> {
   if (!validateManifestSchema(manifest)) return formatErrors(validateManifestSchema.errors)
