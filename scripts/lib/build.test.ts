@@ -73,10 +73,9 @@ const routes = new Map<string, unknown>([
     ],
   }),
   ...publish({ pkg: '@kubb/plugin-old', version: '5.0.0', files: [['package.json', '{}']] }),
-  ['https://api.npmjs.org/downloads/point/last-month/@acme/kubb-plugin-x', { downloads: 100 }],
-  ['https://api.npmjs.org/downloads/point/last-week/@acme/kubb-plugin-x', { downloads: 25 }],
-  ['https://api.npmjs.org/downloads/point/last-month/@acme/kubb-plugin-y', { downloads: 40 }],
-  ['https://api.npmjs.org/downloads/point/last-week/@acme/kubb-plugin-y', { downloads: 10 }],
+  // Daily counts, oldest first: the month sums all of them, the week the last 7.
+  ['https://api.npmjs.org/downloads/range/last-month/@acme/kubb-plugin-x', { downloads: [75, 5, 5, 5, 5, 3, 1, 1].map((downloads) => ({ downloads })) }],
+  ['https://api.npmjs.org/downloads/range/last-month/@acme/kubb-plugin-y', { downloads: [30, 1, 1, 1, 1, 2, 2, 2].map((downloads) => ({ downloads })) }],
   ['https://api.github.com/repos/acme/kubb-plugins', { stargazers_count: 7 }],
 ])
 
