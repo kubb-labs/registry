@@ -2,6 +2,9 @@ name: Bump
 
 on:
   workflow_dispatch:
+  # Sent by the kubb-labs/plugins Release workflow once a release reaches npm `latest`.
+  repository_dispatch:
+    types: [plugins-released]
   schedule:
     # Mondays at 06:17 UTC.
     - cron: '17 6 * * 1'
@@ -35,13 +38,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SUMMARY_FILE: ${{ runner.temp }}/bump.md
-        run: pnpm bump
+        # A plugins release bumps only that repository's records, on its own branch.
+        run: pnpm bump ${{ github.event_name == 'repository_dispatch' && '--repo kubb-labs/plugins' || '' }}
 
       - name: Open the pull request
         if: steps.bump.outputs.count != '0'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          branch: bump
+          branch: ${{ github.event_name == 'repository_dispatch' && 'bump-plugins' || 'bump' }}
           add-paths: extensions/**
           commit-message: 'chore: bump pinned versions'
           title: 'chore: bump pinned versions'
