@@ -8,7 +8,7 @@ body:
       value: |
         Intake opens a pull request with the record. A maintainer reviews the package against [REVIEW.md](https://github.com/kubb-labs/registry/blob/main/REVIEW.md) before it is listed.
 
-        Ship a `kubb-extension.json` and an `OVERVIEW.md` at the package root. See the [registry README](https://github.com/kubb-labs/registry#submit-an-extension).
+        Ship a `kubb-extension.json` at the package root and a `docs/` folder with `overview.md`, plus an optional `options.md` and `guides/`. See the [registry README](https://github.com/kubb-labs/registry#submit-an-extension).
   - type: input
     id: source
     attributes:

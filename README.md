@@ -6,13 +6,13 @@ Each record pins one npm version. Merging a record approves that exact version. 
 
 ## Use the registry
 
-kubb.dev clones this repository on every deploy, builds the records into static JSON with `pnpm build`, and serves the result at `https://kubb.dev/registry`, the base URL the CLI reads. The deploy workflow redeploys kubb.dev on every merge and once a day, so download and star counts stay current. Besides `index.json`, it serves `<owner>/<slug>.json` for one extension, `categories.json`, and the JSON Schemas under `schemas/`.
+kubb.dev clones this repository on every deploy, builds the records into static JSON with `pnpm build`, and serves the result at `https://kubb.dev/registry`, the base URL the CLI reads. The deploy workflow redeploys kubb.dev on every merge and once a day, so download and star counts stay current. Besides `index.json`, it serves `<owner>/<slug>.json` for one extension and its docs, `categories.json`, and the JSON Schemas under `schemas/`.
 
 ## Submit an extension
 
-1. Publish the package to npm with a `kubb-extension.json` and an `OVERVIEW.md` at the package root, both listed in `files` in `package.json`. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin).
+1. Publish the package to npm with a `kubb-extension.json` at the package root and a `docs/` folder with `overview.md`, plus an optional `options.md` and `guides/` (see [Docs](#docs)). List `kubb-extension.json` and `docs` in `files` in `package.json`. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin).
 2. Open a [submission issue](https://github.com/kubb-labs/registry/issues/new?template=submit-extension.yml). In **Source**, paste the npm package name (optionally `name@version`), its npmjs.com page, or the GitHub URL of the repository or package folder. Tick the categories that fit. The first tick is the main one.
-3. Intake opens a review pull request with the record. It pins the version you gave, or the npm `latest` version. Problems with the manifest or the overview are listed in the pull request for the reviewer, and do not stop intake.
+3. Intake opens a review pull request with the record. It pins the version you gave, or the npm `latest` version. Problems with the manifest or the docs are listed in the pull request for the reviewer, and do not stop intake.
 4. A maintainer reviews the package against [REVIEW.md](REVIEW.md), completes the listing, stamps the approval with `pnpm approve`, and merges it.
 
 Editing the issue runs intake again until a review pull request exists. After that, the reviewer owns the pull request and reads later edits from the issue.
@@ -55,9 +55,21 @@ A record lives at `extensions/<owner>/<slug>.json`:
 
 Timestamps are UTC, to the second, such as `2026-10-12T20:00:00Z`. The JSON Schema is [`schemas/registry-record.json`](schemas/registry-record.json). A record owned by `kubb-labs` is `official`, every other record is `community`.
 
-### Overviews
+### Docs
 
-The overview is the extension's page on kubb.dev and its summary in Studio. The registry reads `OVERVIEW.md` from the pinned npm version. When that version ships none, it uses `extensions/<owner>/<slug>.md`, which the reviewer writes before approval. When a later version ships its own `OVERVIEW.md`, that one takes precedence and the bump removes the registry copy.
+kubb.dev builds an extension's pages from the Markdown its pinned npm version ships in `docs/`:
+
+| File                  | Page on kubb.dev                                         | Required |
+| --------------------- | -------------------------------------------------------- | -------- |
+| `docs/overview.md`    | `/extensions/<owner>/<slug>`, also the summary in Studio | Yes      |
+| `docs/options.md`     | `/extensions/<owner>/<slug>/options`                     | No       |
+| `docs/guides/<id>.md` | `/extensions/<owner>/<slug>/guides/<id>`                 | No       |
+
+Each file starts with a `# Title` line. The first paragraph after it is the description that guide cards, search, and page metadata show. Files have no frontmatter. Name each guide file in kebab case, such as `base-url.md`. Its id is the file name without `.md`, and guides appear in file name order, at most 50. Each file is at most 256 KiB.
+
+Write plain Markdown with absolute links. Code fences can carry a title, such as ` ```typescript [kubb.config.ts] `. These also render: the `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, and `> [!WARNING]` callouts, and the components `::code-group`, `::field-group` with `:::field`, `::steps`, `::code-collapse`, and `::tabs` with `:::tabs-item`. Raw HTML, `<!--@include`, twoslash, and other components do not render. The [protocol](PROTOCOL.md#render-the-markdown) has the rules clients follow.
+
+When the pinned version ships no `docs/overview.md`, the registry uses the package's root `OVERVIEW.md`, which versions published before `docs/` may ship. Without either, it uses `extensions/<owner>/<slug>.md`, which the reviewer writes before approval. When a later version ships its own overview, that one takes precedence and the bump removes the registry copy.
 
 An overview explains, in this order and without fixed headings: what the extension does, how it works when that is not obvious, the setup it needs, and the options and limits worth knowing. It has no install commands, badges, changelog, license text, or marketing.
 
@@ -83,7 +95,9 @@ Online (`--online`), for the changed records or every record:
 - The pinned npm version exists.
 - `kubb-extension.json` at that version matches the [manifest JSON Schema](https://github.com/kubb-labs/kubb/blob/main/packages/core/schemas/kubb-extension.json) that `@kubb/core` ships: `kind`, `name`, and `export` are present, `export` is a JavaScript identifier, and `compatibility` has only `kubb` and `node`.
 - Option keys are unique, every `select` has `choices`, and a select's `default` equals one of its choice values.
-- An overview exists, the author's `OVERVIEW.md` or the registry's `extensions/<owner>/<slug>.md`, and it has no install commands (`kubb add`, `npm install`, `npm i`, `pnpm add`, `yarn add`).
+- An overview exists, and it has no install commands (`kubb add`, `npm install`, `npm i`, `pnpm add`, `yarn add`). It is `docs/overview.md`, a root `OVERVIEW.md`, or the registry's `extensions/<owner>/<slug>.md`.
+- Every file in `docs/` starts with a `# Title` line and a description paragraph. It has no raw HTML outside code fences, no `<!--@include`, no twoslash code fence, and no `::` component besides the ones in [Docs](#docs).
+- Every guide id is kebab case, the version ships at most 50 guides, and no file read from the tarball is larger than 256 KiB.
 
 A community version must ship a manifest. An official version released before manifests may omit it. Its record stays valid, but the build leaves it out of the index until a bump pins a version that ships one.
 

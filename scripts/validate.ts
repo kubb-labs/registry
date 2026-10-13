@@ -6,8 +6,8 @@
  * merge base with `--base` (default `origin/main`): `submittedAt` and `publishedAt` never change.
  *
  * Online (`--online`), the changed records or every record: the pinned npm version exists, and the
- * `kubb-extension.json` and `OVERVIEW.md` read from its verified tarball pass the schema, the
- * semantic checks, and the overview rules.
+ * `kubb-extension.json` and the `docs/` folder read from its verified tarball pass the schema, the
+ * semantic checks, and the docs rules.
  *
  * Usage: node scripts/validate.ts [--online] [--changed] [--base <ref>]
  */

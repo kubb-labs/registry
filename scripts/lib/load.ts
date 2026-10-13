@@ -9,7 +9,7 @@ export type LoadedRecord = {
   record: RegistryRecord
   /** Relative to `extensions/`, e.g. `kubb-labs/plugin-zod.json`. */
   path: string
-  /** `extensions/<owner>/<slug>.md`, used while the pinned version ships no `OVERVIEW.md`. */
+  /** `extensions/<owner>/<slug>.md`, used while the pinned version ships no `docs/overview.md` or root `OVERVIEW.md`. */
   registryOverview: string | null
 }
 

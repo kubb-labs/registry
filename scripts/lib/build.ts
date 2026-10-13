@@ -36,7 +36,7 @@ async function resolveRecord({
   stars: Map<string, number | undefined>
 }): Promise<RegistryDetail | null> {
   const { package: pkg, version } = record.artifact
-  const { manifest, authorOverview, problems } = await checkArtifact({ record, registryOverview, scope })
+  const { manifest, authorOverview, options, guides, problems } = await checkArtifact({ record, registryOverview, scope })
   for (const problem of problems) console.warn(`[${scope}] ⚠ ${record.id}: ${problem}`)
   if (!manifest) {
     console.warn(`[${scope}] ⚠ ${record.id}: ${pkg}@${version} ships no valid kubb-extension.json, left out of the index`)
@@ -61,12 +61,16 @@ async function resolveRecord({
     reviewedAt: record.reviewedAt,
     ...(Object.values(stats).some((value) => value !== undefined) && { stats }),
     overview: authorOverview ?? registryOverview,
+    options,
+    guides,
   }
 }
 
 /**
  * Reads every record's pinned version and returns the index and the detail documents, sorted by id.
- * Records whose version ships no valid manifest are left out, with a warning.
+ * A detail holds the overview, the options page, and the guides; the index leaves them out.
+ * Records whose version ships no valid manifest are left out, with a warning. A docs problem is only
+ * a warning.
  */
 export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ index: RegistryIndex; details: Array<RegistryDetail> }> {
   console.log(`[${scope}] reading ${records.length} pinned npm versions…`)
@@ -82,7 +86,7 @@ export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ ind
   const index: RegistryIndex = {
     version: 1,
     generatedAt: toTimestamp(new Date()),
-    extensions: details.map(({ overview: _overview, ...entry }) => entry),
+    extensions: details.map(({ overview: _overview, options: _options, guides: _guides, ...entry }) => entry),
   }
   return { index, details }
 }
