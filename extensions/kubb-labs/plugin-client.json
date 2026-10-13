@@ -4,7 +4,7 @@
   "artifact": {
     "kind": "npm",
     "package": "@kubb/plugin-client",
-    "version": "5.5.5"
+    "version": "5.5.7"
   },
   "repository": {
     "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-client"
@@ -12,7 +12,7 @@
   "submittedAt": "2026-10-12T20:11:53Z",
   "submittedBy": "stijnvanhulle",
   "publishedAt": "2026-10-12T20:11:53Z",
-  "reviewedAt": "2026-10-12T20:11:53Z",
+  "reviewedAt": "2026-10-13T11:37:17Z",
   "categories": [
     "client"
   ]
