@@ -3,9 +3,10 @@
  * exists, and `kubb-extension.json` and `OVERVIEW.md` are read from the verified npm tarball.
  */
 import { fetchPackageFiles } from './npmTarball.ts'
-import { overviewProblems } from './manifestChecks.ts'
+import type { ExtensionManifest } from '@kubb/core/manifest'
+import { overviewProblems } from './overview.ts'
 import { registryTypeOf, validateManifest } from './records.ts'
-import type { ExtensionManifest, RegistryRecord } from './types.ts'
+import type { RegistryRecord } from './types.ts'
 
 const MANIFEST_FILE = 'kubb-extension.json'
 const OVERVIEW_FILE = 'OVERVIEW.md'

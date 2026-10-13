@@ -42,6 +42,7 @@
     "validate": "node scripts/validate.ts"
   },
   "devDependencies": {
+    "@kubb/core": "catalog:",
     "@types/node": "catalog:",
     "ajv": "catalog:",
     "ajv-formats": "catalog:",

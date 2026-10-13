@@ -11,6 +11,7 @@
  */
 import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
+import manifestSchema from '@kubb/core/schemas/kubb-extension.json' with { type: 'json' }
 import { buildRegistry } from './lib/build.ts'
 import { loadRecords } from './lib/load.ts'
 import { fromRoot } from './lib/paths.ts'
@@ -29,5 +30,7 @@ writeJson({ path: 'index.json', data: index })
 for (const detail of details) writeJson({ path: `${detail.id}.json`, data: detail })
 cpSync(fromRoot('categories.json'), fromRoot('dist', 'categories.json'))
 cpSync(fromRoot('schemas'), fromRoot('dist', 'schemas'), { recursive: true })
+// The manifest schema is owned by @kubb/core; the registry publishes it beside its own record schema.
+writeJson({ path: 'schemas/kubb-extension.json', data: manifestSchema })
 
 console.log(`[build] wrote ${details.length} of ${records.length} extensions to dist/`)

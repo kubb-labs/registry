@@ -31,7 +31,7 @@ type RegistryEntry = {
 }
 ```
 
-`ExtensionManifest` is the content of `kubb-extension.json` ([schema](schemas/kubb-extension.json)). `manifest.kind` always equals `kind`. Clients ignore keys they do not know, and reject an index whose `version` is not `1`.
+`ExtensionManifest` is the content of `kubb-extension.json` ([schema](https://github.com/kubb-labs/kubb/blob/main/packages/core/schemas/kubb-extension.json), shipped in `@kubb/core`; the types are in `@kubb/core/manifest`). `manifest.kind` always equals `kind`. Clients ignore keys they do not know, and reject an index whose `version` is not `1`.
 
 ## `GET <base>/<owner>/<slug>.json`
 
