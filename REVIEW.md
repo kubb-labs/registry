@@ -2,14 +2,14 @@
 
 Merging a record approves one exact npm version for everyone who runs `kubb add`. Check each item before you approve. When an item fails, request changes on the pull request and say which item.
 
-`pnpm validate --online --changed` checks the record, the dates, the version on npm, the manifest, and the overview (see [README.md](README.md#validation)). Bot pull requests do not trigger the `Validate` check, so run it yourself. Your review covers what a script cannot judge.
+`pnpm validate --online --changed` checks the record, the dates, the version on npm, the manifest, and the docs (see [README.md](README.md#validation)). Bot pull requests do not trigger the `Validate` check, so run it yourself. Your review covers what a script cannot judge.
 
 Inspect the package without running it. Read its files from the npm tarball (`npm view <package>@<version> dist.tarball`), check them against `dist.integrity`, and never run `npm install`, a build, or a lifecycle script inside it.
 
 ## Listing
 
 - [ ] `categories` holds every category that fits, from `categories.json`, with the main one first.
-- [ ] The package ships `OVERVIEW.md`, or you wrote `extensions/<owner>/<slug>.md` from its README and source.
+- [ ] The package ships `docs/overview.md` (or a root `OVERVIEW.md` in a version published before `docs/`), or you wrote `extensions/<owner>/<slug>.md` from its README and source.
 
 ## Identity
 
@@ -34,7 +34,7 @@ Inspect the package without running it. Read its files from the npm tarball (`np
 
 ## Overview
 
-`OVERVIEW.md` is the extension's page on kubb.dev. It follows this content contract:
+`docs/overview.md` is the extension's page on kubb.dev. It follows this content contract:
 
 - [ ] It opens with what the extension is and does, in one or two short paragraphs.
 - [ ] It explains how it works only when that is not obvious.
@@ -42,6 +42,16 @@ Inspect the package without running it. Read its files from the npm tarball (`np
 - [ ] It explains options worth explaining and known limits.
 - [ ] It uses sentence case, plain language, and no em dashes.
 - [ ] It has no install commands, badges, changelog, license text, or marketing.
+
+## Options and guides
+
+`docs/options.md` and `docs/guides/<id>.md` are optional. When the package ships them, read each one:
+
+- [ ] The options page documents the factory's real options, with the names and defaults the code and the manifest use.
+- [ ] Each guide solves one task, and its first paragraph says what the reader gets.
+- [ ] Code examples match the API of the pinned version.
+- [ ] Links are absolute and point where their text says. Images use `https://` sources.
+- [ ] They use sentence case and plain language, and have no badges, tracking links, marketing, or unrelated content.
 
 ## Install and runtime behavior
 

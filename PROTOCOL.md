@@ -35,7 +35,38 @@ type RegistryEntry = {
 
 ## `GET <base>/<owner>/<slug>.json`
 
-One extension: `RegistryEntry & { overview: string | null }`. `overview` is the Markdown of the author's `OVERVIEW.md` or the registry overview. It is untrusted content, so render it as plain Markdown without raw HTML.
+One extension: its index entry plus the Markdown docs its pinned version ships.
+
+```ts
+type RegistryDetail = RegistryEntry & {
+  overview: string | null
+  options?: string | null
+  guides?: Array<RegistryGuide>
+}
+
+type RegistryGuide = {
+  id: string // "authentication", the file name without .md
+  title: string // the first "# " heading
+  description: string // the first paragraph after the title
+  content: string // the whole Markdown file
+}
+```
+
+- `overview` is the package's `docs/overview.md`. A version published before `docs/` may ship a root `OVERVIEW.md` instead. Without either, it is the registry's own overview, or `null`.
+- `options` is the package's `docs/options.md`, or `null`.
+- `guides` holds each `docs/guides/<id>.md`, sorted by file name, at most 50. `id` is kebab case. A version without guides has `[]`.
+- This repository always writes `options` and `guides`. A registry built before they existed leaves them out, so read a missing `options` as `null` and a missing `guides` as `[]`.
+- `index.json` leaves out `overview`, `options`, and `guides`.
+
+### Render the Markdown
+
+All Markdown in a detail comes from the package author, so it is untrusted. Render it as plain Markdown, and escape or drop raw HTML instead of rendering it. Every docs file starts with a `# Title` line, and the paragraph after it is its description. Beyond plain Markdown, these render:
+
+- Code fences with a language and an optional title, such as ` ```typescript [kubb.config.ts] `.
+- The callouts `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, and `> [!WARNING]`.
+- The components `::code-group`, `::field-group` with `:::field`, `::steps`, `::code-collapse`, and `::tabs` with `:::tabs-item`.
+
+Validation reports raw HTML, `<!--@include`, twoslash code fences, and other components before a version is approved. Clients still render defensively: a component a client does not support shows as plain Markdown.
 
 ## `GET <base>/categories.json`
 
