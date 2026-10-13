@@ -2,7 +2,7 @@
 
 The reviewed registry of Kubb plugins, adapters, and parsers behind [kubb.dev/extensions](https://kubb.dev/extensions), [Kubb Studio](https://kubb.studio), and the Kubb CLI (`kubb add`, `kubb update`, `kubb list`).
 
-Each record pins one npm version, and merging a record approves that exact version. kubb.dev builds the records with `pnpm build` on every deploy and serves the result at `https://kubb.dev/registry`. Clients read it through the [registry protocol](PROTOCOL.md), so anyone can host a registry by serving the same static JSON.
+Each record pins one npm version, and merging a record approves that exact version. The Deploy workflow builds the records with `pnpm build` and publishes the result to GitHub Pages, which kubb.dev serves at `https://kubb.dev/registry`. Clients read it through the [registry protocol](PROTOCOL.md), so anyone can host a registry by serving the same static JSON.
 
 ## Submit an extension
 
@@ -68,7 +68,7 @@ Pull requests the registry workflows open do not trigger the `Validate` check. R
 | [Validate](.github/workflows/validate.yml) | Pull requests                | Type checks, lints, tests, and validates every record offline and the changed ones online. |
 | [Submit](.github/workflows/submit.yml)     | A `submission` issue changes | Writes the record and opens the review pull request.                                       |
 | [Bump](.github/workflows/bump.yml)         | Mondays                      | Opens one pull request that moves pins to npm `latest`.                                    |
-| [Deploy](.github/workflows/deploy.yml)     | Pushes to `main`, and daily  | Redeploys kubb.dev, which builds and serves the registry.                                  |
+| [Deploy](.github/workflows/deploy.yml)     | Pushes to `main`, and daily  | Publishes the build to GitHub Pages and redeploys kubb.dev.                                |
 
 ## Development
 
@@ -83,5 +83,3 @@ pnpm typecheck
 pnpm lint
 pnpm format
 ```
-
-kubb.dev runs `scripts/build.ts` without installing this repository's packages, so the build's imports resolve from kubb.dev. Add a new build dependency to kubb.dev first.
