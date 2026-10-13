@@ -1,7 +1,8 @@
 name: Deploy
 
-# kubb.dev clones this repository on every deploy, runs `pnpm build`, and serves dist/ at
-# https://kubb.dev/registry, so a change here only needs a kubb.dev redeploy.
+# Builds dist/ and publishes it to GitHub Pages (https://kubb-labs.github.io/registry). kubb.dev proxies
+# https://kubb.dev/registry to it, so the Kubb CLI and Studio read a new pin as soon as this finishes. kubb.dev
+# builds its extension pages from the same files, so the last job asks it to redeploy.
 on:
   push:
     branches: [main]
@@ -11,6 +12,7 @@ on:
       - schemas/**
       - scripts/**
       - package.json
+      - .github/workflows/deploy.yml
   schedule:
     # Daily at 05:43 UTC, so download and star counts stay current.
     - cron: '43 5 * * *'
@@ -18,16 +20,72 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
-  deploy-platform:
-    name: Dispatch content-updated to platform
+  build:
+    name: Build
+    timeout-minutes: 15
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions: {}
+    permissions:
+      contents: read
     steps:
-      - uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Tools
+        uses: kubb-labs/config/.github/setup@f1710c1732b46c33bf590d8ff1ac59bf17a53247 # main
         with:
-          token: ${{ secrets.PLATFORM_DISPATCH_TOKEN }}
+          cache: 'false'
+
+      # Reads each pinned npm tarball. No extension code is installed or run.
+      - name: Build the registry
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm build
+
+      - name: Upload the Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  pages:
+    name: Deploy to GitHub Pages
+    needs: build
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  platform:
+    name: Redeploy kubb.dev
+    needs: pages
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      PLATFORM_DISPATCH_TOKEN: ${{ secrets.PLATFORM_DISPATCH_TOKEN }}
+    steps:
+      # The registry is already live. Without the token, only kubb.dev's extension pages wait for its next deploy.
+      - name: Report a missing token
+        if: env.PLATFORM_DISPATCH_TOKEN == ''
+        run: echo "::warning::PLATFORM_DISPATCH_TOKEN is not set, so kubb.dev was not asked to redeploy."
+
+      - name: Dispatch content-updated to platform
+        if: env.PLATFORM_DISPATCH_TOKEN != ''
+        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
+        with:
+          token: ${{ env.PLATFORM_DISPATCH_TOKEN }}
           repository: kubb-labs/platform
           event-type: content-updated
           client-payload: '{"source": "registry", "ref": "${{ github.ref_name }}"}'
