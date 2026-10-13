@@ -1,0 +1,19 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "kubb-labs/plugin-client",
+  "artifact": {
+    "kind": "npm",
+    "package": "@kubb/plugin-client",
+    "version": "5.5.5"
+  },
+  "repository": {
+    "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-client"
+  },
+  "submittedAt": "2026-10-12T20:11:53Z",
+  "submittedBy": "stijnvanhulle",
+  "publishedAt": "2026-10-12T20:11:53Z",
+  "reviewedAt": "2026-10-12T20:11:53Z",
+  "categories": [
+    "client"
+  ]
+}

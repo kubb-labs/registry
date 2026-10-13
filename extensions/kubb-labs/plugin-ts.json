@@ -1,0 +1,19 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "kubb-labs/plugin-ts",
+  "artifact": {
+    "kind": "npm",
+    "package": "@kubb/plugin-ts",
+    "version": "5.0.6"
+  },
+  "repository": {
+    "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-ts"
+  },
+  "submittedAt": "2026-10-12T20:11:53Z",
+  "submittedBy": "stijnvanhulle",
+  "publishedAt": "2026-10-12T20:11:53Z",
+  "reviewedAt": "2026-10-12T20:11:53Z",
+  "categories": [
+    "types"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "kubb-labs/plugin-barrel",
+  "artifact": {
+    "kind": "npm",
+    "package": "@kubb/plugin-barrel",
+    "version": "5.8.0"
+  },
+  "repository": {
+    "url": "https://github.com/kubb-labs/kubb/tree/main/packages/plugin-barrel"
+  },
+  "submittedAt": "2026-10-12T20:11:53Z",
+  "submittedBy": "stijnvanhulle",
+  "publishedAt": "2026-10-12T20:11:53Z",
+  "reviewedAt": "2026-10-12T20:11:53Z",
+  "categories": [
+    "output"
+  ]
+}

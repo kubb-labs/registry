@@ -1,0 +1,19 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "kubb-labs/plugin-msw",
+  "artifact": {
+    "kind": "npm",
+    "package": "@kubb/plugin-msw",
+    "version": "5.0.8"
+  },
+  "repository": {
+    "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-msw"
+  },
+  "submittedAt": "2026-10-12T20:11:53Z",
+  "submittedBy": "stijnvanhulle",
+  "publishedAt": "2026-10-12T20:11:53Z",
+  "reviewedAt": "2026-10-12T20:11:53Z",
+  "categories": [
+    "mocks"
+  ]
+}

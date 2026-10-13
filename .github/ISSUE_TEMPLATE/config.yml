@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Publish a plugin
+    url: https://kubb.dev/docs/5.x/how-to/publish-a-plugin
+    about: How to ship kubb-extension.json and OVERVIEW.md before you submit.
+  - name: Kubb issues
+    url: https://github.com/kubb-labs/kubb/issues
+    about: Bugs and questions about Kubb itself.
