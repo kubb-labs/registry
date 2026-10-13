@@ -56,4 +56,4 @@ When every item passes, run `pnpm approve` on the pull request branch, push the 
 
 ## After merging
 
-The publish workflow lists the extension within minutes: it redeploys kubb.dev, which then serves it at `https://kubb.dev/registry` and shows it in the catalog, and it ships in the next `@kubb/registry` npm release. The weekly bump pull request moves its pin to each new `latest` version, and each of those versions needs the same review.
+The publish workflow lists the extension within minutes: it redeploys kubb.dev, which then serves it at `https://kubb.dev/registry` and shows it in the catalog. The weekly bump pull request moves its pin to each new `latest` version, and each of those versions needs the same review.
