@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://kubb.dev/schemas/registry-record.json",
   "title": "Kubb Registry Record",
-  "description": "A reviewed entry in the Kubb extension registry, stored at extensions/<owner>/<slug>.json in kubb-labs/registry. Merging the record approves the pinned npm version.",
+  "description": "A reviewed entry in the Kubb extension registry, stored at extensions/<owner>/<slug>.json in kubb-labs/registry. Merging the record approves the pinned version: an npm version, or a GitHub release and its commit.",
   "type": "object",
   "required": ["id", "artifact", "repository", "submittedAt", "submittedBy", "publishedAt", "reviewedAt"],
   "additionalProperties": false,
@@ -14,27 +14,11 @@
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*/[a-z0-9]+(?:-[a-z0-9]+)*$",
-      "description": "'<owner>/<slug>': the GitHub owner of the source repository and the npm package name without its scope. Equals the record's path."
+      "description": "'<owner>/<slug>': the GitHub owner of the source repository and the package name without its scope. Equals the record's path."
     },
     "artifact": {
-      "type": "object",
-      "required": ["kind", "package", "version"],
-      "additionalProperties": false,
-      "description": "The install pin.",
-      "properties": {
-        "kind": { "type": "string", "const": "npm" },
-        "package": {
-          "type": "string",
-          "maxLength": 214,
-          "pattern": "^(?:@[a-z0-9][a-z0-9._~-]*/)?[a-z0-9][a-z0-9._~-]*$",
-          "description": "npm package name, e.g. '@kubb/plugin-zod'."
-        },
-        "version": {
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
-          "description": "Exact npm version, e.g. '5.4.4'."
-        }
-      }
+      "description": "The install pin: an exact npm version, or a GitHub release tag and the commit it points to.",
+      "oneOf": [{ "$ref": "#/definitions/npmArtifact" }, { "$ref": "#/definitions/githubArtifact" }]
     },
     "repository": {
       "type": "object",
@@ -45,7 +29,7 @@
           "type": "string",
           "format": "uri",
           "pattern": "^https://github\\.com/[A-Za-z0-9-]+/[A-Za-z0-9._-]+(?:/.*)?$",
-          "description": "Source repository on GitHub, optionally pointing at the package folder."
+          "description": "Source repository on GitHub, optionally pointing at the package folder. A GitHub artifact needs the repository root."
         }
       }
     },
@@ -85,6 +69,45 @@
     }
   },
   "definitions": {
+    "packageName": {
+      "type": "string",
+      "maxLength": 214,
+      "pattern": "^(?:@[a-z0-9][a-z0-9._~-]*/)?[a-z0-9][a-z0-9._~-]*$",
+      "description": "Package name, e.g. '@kubb/plugin-zod'."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
+      "description": "Exact version, e.g. '5.4.4'."
+    },
+    "npmArtifact": {
+      "type": "object",
+      "required": ["kind", "package", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "const": "npm" },
+        "package": { "$ref": "#/definitions/packageName" },
+        "version": { "$ref": "#/definitions/version" }
+      }
+    },
+    "githubArtifact": {
+      "type": "object",
+      "required": ["kind", "package", "version", "owner", "repo", "tag", "commit"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "const": "github" },
+        "package": { "$ref": "#/definitions/packageName", "description": "The name in the repository's root package.json." },
+        "version": { "$ref": "#/definitions/version", "description": "The release version: the tag without a leading 'v'." },
+        "owner": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9]|-(?=[a-z0-9])){0,38}$", "description": "GitHub owner, in lowercase." },
+        "repo": { "type": "string", "pattern": "^(?!\\.\\.?$)[A-Za-z0-9._-]{1,100}$", "description": "GitHub repository name." },
+        "tag": {
+          "type": "string",
+          "pattern": "^v?\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
+          "description": "Release tag, e.g. 'v1.2.0'."
+        },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$", "description": "The full commit SHA the tag points to. Installs use it, never the tag." }
+      }
+    },
     "timestamp": {
       "type": "string",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",

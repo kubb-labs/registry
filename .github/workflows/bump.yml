@@ -30,9 +30,10 @@ jobs:
         with:
           cache: 'false'
 
-      - name: Move pins to npm latest
+      - name: Move pins to the latest version
         id: bump
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           SUMMARY_FILE: ${{ runner.temp }}/bump.md
         run: pnpm bump
 

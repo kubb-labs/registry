@@ -1,17 +1,11 @@
-import { checkArtifact } from './check.ts'
+import { artifactLabel, checkArtifact } from './check.ts'
+import { githubHeaders } from './github.ts'
 import { fetchJson } from './http.ts'
 import type { LoadedRecord } from './load.ts'
 import { applyListing, parseRepositoryUrl, registryTypeOf, toTimestamp } from './records.ts'
 import type { RegistryDetail, RegistryIndex } from '@kubb/core'
 
 const scope = 'build'
-
-const githubHeaders = {
-  Accept: 'application/vnd.github+json',
-  'X-GitHub-Api-Version': '2022-11-28',
-  'User-Agent': 'kubb-labs-registry',
-  ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
-}
 
 /** `<owner>/<repo>` of a GitHub repository URL, which may point at a folder inside it. */
 function repoSlug(url: string): string | undefined {
@@ -51,16 +45,15 @@ async function resolveRecord({
   downloads: Map<string, Downloads>
   stars: Map<string, number | undefined>
 }): Promise<RegistryDetail | null> {
-  const { package: pkg, version } = record.artifact
-  const { manifest, authorOverview, options, guides, problems } = await checkArtifact({ record, registryOverview, scope })
+  const { manifest, authorOverview, options, guides, problems } = await checkArtifact({ record, registryOverview, verifyPin: false, scope })
   for (const problem of problems) console.warn(`[${scope}] ⚠ ${record.id}: ${problem}`)
   if (!manifest) {
-    console.warn(`[${scope}] ⚠ ${record.id}: ${pkg}@${version} ships no valid kubb-extension.json, left out of the index`)
+    console.warn(`[${scope}] ⚠ ${record.id}: ${artifactLabel(record.artifact)} ships no valid kubb-extension.json, left out of the index`)
     return null
   }
 
   const slug = repoSlug(record.repository.url)
-  const stats = { ...downloads.get(pkg), stars: slug ? stars.get(slug) : undefined }
+  const stats = { ...downloads.get(record.artifact.package), stars: slug ? stars.get(slug) : undefined }
   const merged = applyListing({ manifest, record })
   return {
     id: record.id,
@@ -86,16 +79,17 @@ async function resolveRecord({
  * a warning.
  */
 export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ index: RegistryIndex; details: Array<RegistryDetail> }> {
-  console.log(`[${scope}] reading ${records.length} pinned npm versions…`)
+  console.log(`[${scope}] reading ${records.length} pinned versions…`)
   // One request per repository, since many records share one.
   const slugs = [...new Set(records.flatMap(({ record }) => repoSlug(record.repository.url) ?? []))]
   const counts = await Promise.all(
     slugs.map((slug) => fetchCount({ url: `https://api.github.com/repos/${slug}`, key: 'stargazers_count', headers: githubHeaders })),
   )
   const stars = new Map(slugs.map((slug, index) => [slug, counts[index]]))
-  // One package at a time, since npm rate-limits its downloads API.
+  // One package at a time, since npm rate-limits its downloads API. GitHub releases have no npm downloads.
   const downloads = new Map<string, Downloads>()
-  for (const { record } of records) downloads.set(record.artifact.package, await fetchDownloads(record.artifact.package))
+  for (const { record } of records.filter(({ record }) => record.artifact.kind === 'npm'))
+    downloads.set(record.artifact.package, await fetchDownloads(record.artifact.package))
 
   const details = (await Promise.all(records.map((loaded) => resolveRecord({ loaded, downloads, stars })))).filter((detail) => detail !== null)
   details.sort((a, b) => a.id.localeCompare(b.id))

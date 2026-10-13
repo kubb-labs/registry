@@ -18,7 +18,7 @@ const GITHUB_SOURCE = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+
 
 /**
  * Where a submitted extension lives: an npm package (optionally an exact version), or a GitHub
- * repository or a folder inside one, whose `package.json` names the npm package.
+ * repository or a folder inside one, whose `package.json` names the package.
  */
 export type SubmissionSource = { kind: 'npm'; package: string; version?: string } | { kind: 'github'; owner: string; repo: string; ref?: string; path?: string }
 

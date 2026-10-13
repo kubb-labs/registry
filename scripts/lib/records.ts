@@ -7,7 +7,7 @@ import addFormats from 'ajv-formats'
 import { type ExtensionManifest, manifestProblems } from '@kubb/core'
 import manifestSchema from '@kubb/core/schemas/kubb-extension.json' with { type: 'json' }
 import recordSchema from '../../schemas/registry-record.json' with { type: 'json' }
-import type { RegistryRecord } from './types.ts'
+import type { GitHubArtifact, RegistryRecord } from './types.ts'
 
 /** Owners and slugs: lowercase words joined by single hyphens. */
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -28,7 +28,7 @@ function formatErrors(errors: typeof validateRecordSchema.errors): Array<string>
 }
 
 /**
- * The npm package name without its scope: `@kubb/plugin-zod` gives `plugin-zod`.
+ * The package name without its scope: `@kubb/plugin-zod` gives `plugin-zod`.
  */
 export function slugFromPackage(pkg: string): string {
   return pkg.replace(/^@[^/]+\//, '')
@@ -82,6 +82,23 @@ export function validateRecord({
   if (slug !== packageSlug) errors.push(`/id slug "${slug}" must equal the package name without its scope "${packageSlug}"`)
   const repo = parseRepositoryUrl(repository.url)
   if (repo?.owner !== owner) errors.push(`/id owner "${owner}" must equal the repository owner "${repo?.owner ?? '?'}"`)
+  if (artifact.kind === 'github') errors.push(...githubArtifactProblems({ artifact, repositoryUrl: repository.url }))
+  return errors
+}
+
+/**
+ * Checks a GitHub artifact against its record: the package installs from the repository root, the
+ * tag names the version, and a scoped name uses the owner as its scope, so it cannot pass for
+ * another owner's package such as `@kubb/...`.
+ */
+function githubArtifactProblems({ artifact, repositoryUrl }: { artifact: GitHubArtifact; repositoryUrl: string }): Array<string> {
+  const errors: Array<string> = []
+  const root = `https://github.com/${artifact.owner}/${artifact.repo}`
+  if (repositoryUrl !== root) errors.push(`/repository/url must be "${root}", the repository root the GitHub artifact installs from`)
+  if (artifact.tag !== artifact.version && artifact.tag !== `v${artifact.version}`)
+    errors.push(`/artifact/tag "${artifact.tag}" must be "v${artifact.version}" or "${artifact.version}"`)
+  const scope = artifact.package.match(/^@([^/]+)\//)?.[1]
+  if (scope !== undefined && scope !== artifact.owner) errors.push(`/artifact/package scope "@${scope}" must be the repository owner "@${artifact.owner}"`)
   return errors
 }
 
@@ -150,12 +167,23 @@ function compareVersions({ a, b }: { a: string; b: string }): number {
 }
 
 /**
- * Moves a record's pin to `latest` when that is newer, and stamps `reviewedAt`. Returns null when
- * the record is already current. `submittedAt` and `publishedAt` never change.
+ * Moves a record's pin to `latest` when that is newer, and stamps `reviewedAt`. A GitHub record also
+ * takes the release's `pin`: its tag and commit. Returns null when the record is already current.
+ * `submittedAt` and `publishedAt` never change.
  */
-export function bumpRecord({ record, latest, now }: { record: RegistryRecord; latest: string; now: Date }): RegistryRecord | null {
+export function bumpRecord({
+  record,
+  latest,
+  pin,
+  now,
+}: {
+  record: RegistryRecord
+  latest: string
+  pin?: Pick<GitHubArtifact, 'tag' | 'commit'>
+  now: Date
+}): RegistryRecord | null {
   if (compareVersions({ a: latest, b: record.artifact.version }) <= 0) return null
-  return { ...record, artifact: { ...record.artifact, version: latest }, reviewedAt: toTimestamp(now) }
+  return { ...record, artifact: { ...record.artifact, version: latest, ...pin }, reviewedAt: toTimestamp(now) }
 }
 
 /**

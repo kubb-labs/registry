@@ -1,10 +1,10 @@
 # Reviewing a registry pull request
 
-Merging a record approves one exact npm version for everyone who runs `kubb add`. Check each item before you approve. When an item fails, request changes on the pull request and say which item.
+Merging a record approves one exact version, an npm version or a GitHub release's commit, for everyone who runs `kubb add`. Check each item before you approve. When an item fails, request changes on the pull request and say which item.
 
-`pnpm validate --online --changed` checks the record, the dates, the version on npm, the manifest, and the docs (see [README.md](README.md#validation)). Bot pull requests do not trigger the `Validate` check, so run it yourself. Your review covers what a script cannot judge.
+`pnpm validate --online --changed` checks the record, the dates, the version on npm or GitHub, the manifest, and the docs (see [README.md](README.md#validation)). Bot pull requests do not trigger the `Validate` check, so run it yourself. Your review covers what a script cannot judge.
 
-Inspect the package without running it. Read its files from the npm tarball (`npm view <package>@<version> dist.tarball`), check them against `dist.integrity`, and never run `npm install`, a build, or a lifecycle script inside it.
+Inspect the package without running it. Read its files from the npm tarball (`npm view <package>@<version> dist.tarball`), check them against `dist.integrity`, and never run `npm install`, a build, or a lifecycle script inside it. For a GitHub release, read the archive of the pinned commit (`https://codeload.github.com/<owner>/<repo>/tar.gz/<commit>`) instead.
 
 ## Listing
 
@@ -15,13 +15,14 @@ Inspect the package without running it. Read its files from the npm tarball (`np
 
 - [ ] The record owner matches the repository owner, and `id` is `<owner>/<slug>`.
 - [ ] The submitter (`submittedBy`) is the repository owner, or a member of the owning organization.
-- [ ] The npm package lists the same repository in its `package.json` `repository` field.
-- [ ] The npm maintainers are the people or the organization behind the repository.
+- [ ] For npm: the package lists the same repository in its `package.json` `repository` field.
+- [ ] For npm: the maintainers are the people or the organization behind the repository.
 
 ## Package and version
 
-- [ ] The package and the pinned version exist on npm, and the version is not deprecated.
-- [ ] The published code matches the repository at the tag or commit for that version.
+- [ ] For npm: the package and the pinned version exist, and the version is not deprecated.
+- [ ] For npm: the published code matches the repository at the tag or commit for that version.
+- [ ] For GitHub: the committed build matches the source at the pinned commit. Users run the build, so read it, not only the source.
 - [ ] The package declares `kubb` or `@kubb/core` as a peer dependency, not a bundled copy.
 
 ## Manifest

@@ -37,9 +37,10 @@ jobs:
           pnpm format:check
           pnpm test
 
-      # Every record offline, and the changed ones against their pinned npm versions. No extension code runs.
+      # Every record offline, and the changed ones against their pinned versions. No extension code runs.
       - name: Validate records
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           BASE_REF: origin/${{ github.base_ref || 'main' }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then

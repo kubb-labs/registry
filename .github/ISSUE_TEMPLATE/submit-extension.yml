@@ -17,6 +17,8 @@ body:
         Where the extension lives: an npm package name, optionally with an exact version
         (`@acme/kubb-plugin-graphql@1.2.3`), its npmjs.com page, or a GitHub repository URL,
         including one to the package folder. Without a version, the npm `latest` version is used.
+        A package that is not on npm installs from a GitHub release: link the repository root,
+        optionally with the release tag (`/tree/v1.2.0`), or the latest release is used.
       placeholder: 'https://github.com/acme/kubb-plugins/tree/main/packages/graphql'
     validations:
       required: true

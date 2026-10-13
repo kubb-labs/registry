@@ -1,15 +1,20 @@
 /**
- * Checks a record against its pinned npm version, without running any of its code: the version
- * exists, and `kubb-extension.json` and the docs are read from the verified npm tarball.
+ * Checks a record against its pinned version, without running any of its code: the version exists,
+ * and `kubb-extension.json` and the docs are read from the verified npm tarball, or from the archive
+ * of a GitHub release's commit.
  */
 import { fetchPackageFiles, MAX_FILE_BYTES } from './npmTarball.ts'
-import type { ExtensionManifest, RegistryGuide } from '@kubb/core'
+import type { ExtensionManifest, RegistryArtifact, RegistryGuide } from '@kubb/core'
 import { DOCS_OVERVIEW_FILE, isDocsFile, readDocs } from './docs.ts'
+import { fetchGitHubFiles, resolveTagCommit } from './github.ts'
+import { githubPackageProblems } from './githubPackage.ts'
+import { npmHasPackage } from './npm.ts'
 import { overviewProblems } from './overview.ts'
 import { registryTypeOf, validateManifest } from './records.ts'
-import type { RegistryRecord } from './types.ts'
+import type { GitHubArtifact, RegistryRecord } from './types.ts'
 
 const MANIFEST_FILE = 'kubb-extension.json'
+const PACKAGE_FILE = 'package.json'
 /** Where versions published before `docs/` ship their overview. */
 const ROOT_OVERVIEW_FILE = 'OVERVIEW.md'
 
@@ -26,11 +31,23 @@ type ArtifactCheck = {
   problems: Array<string>
 }
 
+/** How messages name a pinned version: `@kubb/plugin-zod@5.4.4`, or `acme/kubb-plugin-x@v1.2.0` on GitHub. */
+export function artifactLabel(artifact: RegistryArtifact): string {
+  return artifact.kind === 'github' ? `${artifact.owner}/${artifact.repo}@${artifact.tag}` : `${artifact.package}@${artifact.version}`
+}
+
 /**
  * Parses and checks the manifest a version ships. A version without one is a problem only for a community record.
  */
-function readManifest({ record, text }: { record: RegistryRecord; text: string | undefined }): Pick<ArtifactCheck, 'manifest' | 'problems'> {
-  const label = `${record.artifact.package}@${record.artifact.version}`
+function readManifest({
+  record,
+  label,
+  text,
+}: {
+  record: RegistryRecord
+  label: string
+  text: string | undefined
+}): Pick<ArtifactCheck, 'manifest' | 'problems'> {
   if (text === undefined) return { manifest: null, problems: registryTypeOf(record.id) === 'community' ? [`${label} ships no ${MANIFEST_FILE}`] : [] }
 
   let parsed: unknown
@@ -51,7 +68,48 @@ function isPackageFile(path: string): boolean {
 }
 
 /**
- * Reads the manifest and the docs from the pinned npm tarball and checks them. A version without a
+ * The files a pinned version ships that the registry reads. A GitHub release also gives its root
+ * `package.json` and the path of every committed file.
+ */
+function readArtifactFiles({ artifact, scope }: { artifact: RegistryArtifact; scope: string }) {
+  return artifact.kind === 'github'
+    ? fetchGitHubFiles({ ...artifact, wanted: (path) => path === PACKAGE_FILE || isPackageFile(path) })
+    : fetchPackageFiles({ pkg: artifact.package, version: artifact.version, wanted: isPackageFile, scope })
+}
+
+/**
+ * The problems with a GitHub release beyond its manifest and docs: its `package.json`, and with
+ * `verifyPin`, that the tag still points to the pinned commit and that npm does not list the name.
+ */
+async function githubProblems({
+  artifact,
+  files,
+  paths,
+  verifyPin,
+  scope,
+}: {
+  artifact: GitHubArtifact
+  files: Map<string, string>
+  paths: ReadonlySet<string>
+  verifyPin: boolean
+  scope: string
+}): Promise<Array<string>> {
+  const label = artifactLabel(artifact)
+  const problems = githubPackageProblems({ artifact, text: files.get(PACKAGE_FILE), paths, manifest: files.has(MANIFEST_FILE) }).map(
+    (problem) => `${label}: ${problem}`,
+  )
+  if (!verifyPin) return problems
+
+  const [commit, onNpm] = await Promise.all([resolveTagCommit({ ...artifact, scope }), npmHasPackage({ pkg: artifact.package, scope })])
+  if (commit !== artifact.commit)
+    problems.push(commit ? `${label}: the tag points to ${commit}, not the pinned ${artifact.commit}` : `${label}: the repository has no such tag`)
+  if (onNpm) problems.push(`${artifact.package} is on npm, so a GitHub record cannot use the name. Submit the npm package instead.`)
+  if (onNpm === null) problems.push(`could not check whether npm lists ${artifact.package}`)
+  return problems
+}
+
+/**
+ * Reads the manifest and the docs from the pinned version and checks them. A version without a
  * manifest passes only for an official record released before manifests; the build leaves it out of
  * the index until a version ships one. An overview is required: the author's `docs/overview.md`, else
  * the root `OVERVIEW.md` of a version published before `docs/`, else the registry's
@@ -60,19 +118,23 @@ function isPackageFile(path: string): boolean {
 export async function checkArtifact({
   record,
   registryOverview,
+  verifyPin = true,
   scope = 'registry',
 }: {
   record: RegistryRecord
   registryOverview: string | null
+  /** For a GitHub release: also check the tag and npm, which the build skips to save API calls. */
+  verifyPin?: boolean
   scope?: string
 }): Promise<ArtifactCheck> {
-  const { package: pkg, version } = record.artifact
-  const label = `${pkg}@${version}`
-  const read = await fetchPackageFiles({ pkg, version, wanted: isPackageFile, scope })
+  const { artifact } = record
+  const label = artifactLabel(artifact)
+  const read = await readArtifactFiles({ artifact, scope })
   if (read.status === 'error') return { manifest: null, authorOverview: null, options: null, guides: [], problems: [read.message] }
 
   const sizeProblems = read.tooLarge.map((path) => `${path} of ${label} is larger than ${MAX_FILE_BYTES / 1024} KiB, so it was not read`)
-  const { manifest, problems } = readManifest({ record, text: read.files.get(MANIFEST_FILE) })
+  const { manifest, problems } = readManifest({ record, label, text: read.files.get(MANIFEST_FILE) })
+  const packageProblems = artifact.kind === 'github' ? await githubProblems({ artifact, files: read.files, paths: read.paths, verifyPin, scope }) : []
   const docs = readDocs(read.files)
   const docsIssues = docs.problems.map(({ path, problem }) => `${path} of ${label}: ${problem}`)
 
@@ -91,6 +153,6 @@ export async function checkArtifact({
     authorOverview,
     options: docs.options,
     guides: docs.guides,
-    problems: [...sizeProblems, ...problems, ...overviewIssues, ...docsIssues],
+    problems: [...sizeProblems, ...problems, ...packageProblems, ...overviewIssues, ...docsIssues],
   }
 }
