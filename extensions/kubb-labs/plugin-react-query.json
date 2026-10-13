@@ -4,7 +4,7 @@
   "artifact": {
     "kind": "npm",
     "package": "@kubb/plugin-react-query",
-    "version": "5.3.2"
+    "version": "5.3.3"
   },
   "repository": {
     "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-react-query"
@@ -12,7 +12,7 @@
   "submittedAt": "2026-10-12T20:11:53Z",
   "submittedBy": "stijnvanhulle",
   "publishedAt": "2026-10-12T20:11:53Z",
-  "reviewedAt": "2026-10-13T12:44:26Z",
+  "reviewedAt": "2026-10-13T15:46:02Z",
   "categories": [
     "framework"
   ]
