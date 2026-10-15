@@ -165,8 +165,8 @@ settings:
 catalogs:
   default:
     '@kubb/core':
-      specifier: ^5.10.2
-      version: 5.10.2
+      specifier: ^5.10.3
+      version: 5.10.3
     '@types/node':
       specifier: 22.20.2
       version: 22.20.2
@@ -198,7 +198,7 @@ importers:
     devDependencies:
       '@kubb/core':
         specifier: 'catalog:'
-        version: 5.10.2
+        version: 5.10.3(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.2
@@ -236,13 +236,18 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kubb/ast@5.10.2':
-    resolution: {integrity: sha512-VGuWCGWe8/a/9F1d9ACu9Isu93LCM53RryYUlR9V9CCu2rhGsI/kultF7sLyIwU+S7J4St9HpoffF3VfgkIbBg==}
+  '@kubb/ast@5.10.3':
+    resolution: {integrity: sha512-+5w0KTNyYzPeBCoR0KRbIt4TCWYjvcII0PiAM/TCEORb3OXQgPkLQb3Hk4oywc8muKfNOgr2cvwijak9PjfIcA==}
     engines: {node: '>=22'}
 
-  '@kubb/core@5.10.2':
-    resolution: {integrity: sha512-4QcCka9WPwkM1c8AS0zmP2E7V+Pq0HPFJ+D9Dn2POKyMhfCUyycDx6j7+SBJngRbLED2LOhy2mjM3E3PEKOQ2A==}
+  '@kubb/core@5.10.3':
+    resolution: {integrity: sha512-BPjUy+BVPDGtyG/6QG+xziBszKdC7ZcSSV8Wi8gWRhJPbFYiNv8yYfgxH/R2ktFPWDaS+8VxFTxp5KT36+AFTQ==}
     engines: {node: '>=22'}
+    peerDependencies:
+      vitest: ^4.0.0 || ^5.0.0
+    peerDependenciesMeta:
+      vitest:
+        optional: true
 
   '@oxc-project/types@0.153.0':
     resolution: {integrity: sha512-jSNrRIyvPVLL5E1z/tS5zLAprosGz/FuI1PWwEOz59j3E4TTTzSpqKb/RDGqJhhW0QHYISGXxq582wGx6T11Tw==}
@@ -1066,14 +1071,16 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kubb/ast@5.10.2': {}
+  '@kubb/ast@5.10.3': {}
 
-  '@kubb/core@5.10.2':
+  '@kubb/core@5.10.3(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))':
     dependencies:
-      '@kubb/ast': 5.10.2
+      '@kubb/ast': 5.10.3
       tinyexec: 1.3.1
       unstorage: 1.17.5
       verkit: 0.5.0
+    optionalDependencies:
+      vitest: 5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
