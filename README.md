@@ -1,3 +1,9 @@
+<div align="center">
+  <a href="https://kubb.dev" target="_blank" rel="noopener noreferrer">
+    <img src="https://kubb.dev/og.png" alt="Kubb banner">
+  </a>
+</div>
+
 # Kubb extension registry
 
 The reviewed registry of Kubb plugins, adapters, and parsers behind [kubb.dev/extensions](https://kubb.dev/extensions), [Kubb Studio](https://kubb.studio), and the Kubb CLI (`kubb add`, `kubb update`, `kubb list`).
