@@ -56,6 +56,15 @@ describe('readTarFiles', () => {
       paths: new Set(['docs/guides/huge.md', 'docs/options.md']),
     })
   })
+
+  it('reads the first 256 KiB of a file that truncated accepts', () => {
+    const archive = tar([['package/CHANGELOG.md', `## 1.0.0\n${'x'.repeat(256 * 1024)}`]])
+
+    const { files, tooLarge } = readTarFiles({ tar: archive, wanted: () => true, truncated: (path) => path === 'CHANGELOG.md' })
+
+    expect(files.get('CHANGELOG.md')).toHaveLength(256 * 1024)
+    expect(tooLarge).toStrictEqual([])
+  })
 })
 
 describe('matchesIntegrity', () => {

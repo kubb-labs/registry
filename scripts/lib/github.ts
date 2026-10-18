@@ -62,13 +62,16 @@ export async function fetchGitHubFiles({
   repo,
   commit,
   wanted,
-}: Repository & { commit: string; wanted: (path: string) => boolean }): Promise<({ status: 'ok' } & TarFiles) | { status: 'error'; message: string }> {
+  truncated,
+}: Repository & { commit: string; wanted: (path: string) => boolean; truncated?: (path: string) => boolean }): Promise<
+  ({ status: 'ok' } & TarFiles) | { status: 'error'; message: string }
+> {
   try {
     const bytes = await fetchBytes({ url: `https://codeload.github.com/${owner}/${repo}/tar.gz/${commit}`, timeout: 60_000 })
     // A gzip body starts with 1f 8b. Without it, fetch already decompressed the archive.
     const tar = bytes[0] === 0x1f && bytes[1] === 0x8b ? gunzipSync(bytes, { maxOutputLength: MAX_TARBALL_BYTES }) : bytes
     if (tar.length > MAX_TARBALL_BYTES) throw new Error('the archive is larger than the limit')
-    return { status: 'ok', ...readTarFiles({ tar, wanted }) }
+    return { status: 'ok', ...readTarFiles({ tar, wanted, truncated }) }
   } catch (err) {
     return { status: 'error', message: `${owner}/${repo}@${commit}: ${(err as Error).message}` }
   }

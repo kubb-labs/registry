@@ -27,3 +27,6 @@ export type GitHubArtifact = Extract<RegistryArtifact, { kind: 'github' }>
 
 /** One entry of `categories.json`. */
 export type RegistryCategory = { slug: string; label: string; description: string }
+
+/** The headline change of a pinned version, from its `CHANGELOG.md`. Replace with `RegistryChanges` from `@kubb/core` once the pinned release exports it. */
+export type RegistryChanges = { summary: string; breaking?: boolean; guide?: string }

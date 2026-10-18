@@ -25,6 +25,7 @@ type RegistryEntry = {
   repository?: { url: string }
   manifest: ExtensionManifest // kubb-extension.json at the pinned version, with the record's categories and listing applied
   stats?: { downloads?: number; weekly?: number; stars?: number }
+  changes?: RegistryChanges
   submittedAt: string
   publishedAt: string
   reviewedAt: string
@@ -33,7 +34,15 @@ type RegistryEntry = {
 type RegistryArtifact =
   | { kind: 'npm'; package: string; version: string }
   | { kind: 'github'; package: string; version: string; owner: string; repo: string; tag: string; commit: string }
+
+type RegistryChanges = {
+  summary: string // "Support Zod 4 only", the first entry of the version's changelog section
+  breaking?: boolean // true when the section lists major changes
+  guide?: string // a migration guide URL the section links to
+}
 ```
+
+`changes` is the headline change of the pinned version, read from the `CHANGELOG.md` in its package. It is plain text, without links, pull request references, or Markdown. An entry whose version ships no changelog, or no section for the version, leaves it out. A registry built before it existed leaves it out too, so read it as optional.
 
 Install an `npm` artifact as `<package>@<version>`. Install a `github` artifact as `github:<owner>/<repo>#<commit>`, never by its tag. The package sits at the repository root, `package` is the `name` in its `package.json`, and `version` is the release version that `tag` names. Skip an entry whose `artifact.kind` you do not know.
 

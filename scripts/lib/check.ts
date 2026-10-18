@@ -5,12 +5,13 @@
  */
 import { fetchPackageFiles, MAX_FILE_BYTES } from './npmTarball.ts'
 import type { ExtensionManifest, RegistryArtifact, RegistryGuide } from '@kubb/core'
+import { CHANGELOG_FILE, readChanges } from './changelog.ts'
 import { DOCS_OVERVIEW_FILE, isDocsFile, overviewProblems, readDocs } from './docs.ts'
 import { fetchGitHubFiles, resolveTagCommit } from './github.ts'
 import { githubPackageProblems } from './githubPackage.ts'
 import { npmHasPackage } from './npm.ts'
 import { registryTypeOf, validateManifest } from './records.ts'
-import type { GitHubArtifact, RegistryRecord } from './types.ts'
+import type { GitHubArtifact, RegistryChanges, RegistryRecord } from './types.ts'
 
 const MANIFEST_FILE = 'kubb-extension.json'
 const PACKAGE_FILE = 'package.json'
@@ -27,6 +28,8 @@ type ArtifactCheck = {
   authorOverview: string | null
   options: string | null
   guides: Array<RegistryGuide>
+  /** The headline change of the pinned version, from its `CHANGELOG.md`. */
+  changes: RegistryChanges | null
   problems: Array<string>
 }
 
@@ -60,11 +63,14 @@ function readManifest({
 }
 
 /**
- * The files the registry reads from a package: the manifest, the docs, and a root overview.
+ * The files the registry reads from a package: the manifest, the docs, a root overview, and the changelog.
  */
 function isPackageFile(path: string): boolean {
-  return path === MANIFEST_FILE || path === ROOT_OVERVIEW_FILE || isDocsFile(path)
+  return path === MANIFEST_FILE || path === ROOT_OVERVIEW_FILE || path === CHANGELOG_FILE || isDocsFile(path)
 }
+
+/** Changesets puts the newest version first, so a long changelog is read only up to the size limit. */
+const isChangelog = (path: string) => path === CHANGELOG_FILE
 
 /**
  * The files a pinned version ships that the registry reads. A GitHub release also gives its root
@@ -72,8 +78,8 @@ function isPackageFile(path: string): boolean {
  */
 function readArtifactFiles({ artifact, scope }: { artifact: RegistryArtifact; scope: string }) {
   return artifact.kind === 'github'
-    ? fetchGitHubFiles({ ...artifact, wanted: (path) => path === PACKAGE_FILE || isPackageFile(path) })
-    : fetchPackageFiles({ pkg: artifact.package, version: artifact.version, wanted: isPackageFile, scope })
+    ? fetchGitHubFiles({ ...artifact, wanted: (path) => path === PACKAGE_FILE || isPackageFile(path), truncated: isChangelog })
+    : fetchPackageFiles({ pkg: artifact.package, version: artifact.version, wanted: isPackageFile, truncated: isChangelog, scope })
 }
 
 /**
@@ -129,7 +135,7 @@ export async function checkArtifact({
   const { artifact } = record
   const label = artifactLabel(artifact)
   const read = await readArtifactFiles({ artifact, scope })
-  if (read.status === 'error') return { manifest: null, authorOverview: null, options: null, guides: [], problems: [read.message] }
+  if (read.status === 'error') return { manifest: null, authorOverview: null, options: null, guides: [], changes: null, problems: [read.message] }
 
   const sizeProblems = read.tooLarge.map((path) => `${path} of ${label} is larger than ${MAX_FILE_BYTES / 1024} KiB, so it was not read`)
   const { manifest, problems } = readManifest({ record, label, text: read.files.get(MANIFEST_FILE) })
@@ -137,6 +143,7 @@ export async function checkArtifact({
   const docs = readDocs(read.files)
   const docsIssues = docs.problems.map(({ path, problem }) => `${path} of ${label}: ${problem}`)
 
+  const changelog = read.files.get(CHANGELOG_FILE)
   const rootOverview = read.files.get(ROOT_OVERVIEW_FILE) ?? null
   const authorOverview = docs.overview ?? rootOverview
   const overview = [
@@ -152,6 +159,7 @@ export async function checkArtifact({
     authorOverview,
     options: docs.options,
     guides: docs.guides,
+    changes: changelog === undefined ? null : readChanges({ changelog, version: artifact.version }),
     problems: [...sizeProblems, ...problems, ...packageProblems, ...overviewIssues, ...docsIssues],
   }
 }

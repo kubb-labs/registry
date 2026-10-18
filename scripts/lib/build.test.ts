@@ -79,6 +79,10 @@ const routes = new Map<string, unknown>([
       ['docs/guides/retries.md', 'Retries without a title.\n'],
       ['docs/guides/authentication.md', docs.authentication],
       ['docs/guides/advanced/deep.md', '# Deep\n\nNot read.\n'],
+      [
+        'CHANGELOG.md',
+        '# @acme/kubb-plugin-y\n\n## 2.0.0\n\n### Major Changes\n\n- [#3](https://github.com/acme/kubb-plugins/pull/3) Thanks [@acme](https://github.com/acme)! - Drop `zod@3`.\n',
+      ],
     ],
   }),
   ...publish({ pkg: '@kubb/plugin-old', version: '5.0.0', files: [['package.json', '{}']] }),
@@ -138,7 +142,7 @@ describe('buildRegistry', () => {
     expect(warnings.mock.calls.flat().join('\n')).toContain('kubb-labs/plugin-old: @kubb/plugin-old@5.0.0 ships no valid kubb-extension.json')
   })
 
-  it('publishes the docs folder in the detail, leaves it out of the index, and keeps the extension when a guide fails', async () => {
+  it('publishes the docs folder in the detail, leaves it out of the index, adds the headline change from the changelog, and keeps the extension when a guide fails', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {})
     stubFetch(routes)
@@ -154,6 +158,7 @@ describe('buildRegistry', () => {
         repository: withDocs.repository,
         manifest: manifestY,
         stats: { downloads: 40, weekly: 10, stars: 7 },
+        changes: { summary: 'Drop zod@3', breaking: true },
         submittedAt: dates.submittedAt,
         publishedAt: dates.publishedAt,
         reviewedAt: dates.reviewedAt,

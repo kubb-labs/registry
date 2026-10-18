@@ -4,6 +4,10 @@ import { fetchJson } from './http.ts'
 import type { LoadedRecord } from './load.ts'
 import { applyListing, parseRepositoryUrl, registryTypeOf, toTimestamp } from './records.ts'
 import type { RegistryDetail, RegistryIndex } from '@kubb/core'
+import type { RegistryChanges } from './types.ts'
+
+/** A detail with the `changes` field the pinned `@kubb/core` types do not have yet. */
+type BuiltDetail = RegistryDetail & { changes?: RegistryChanges }
 
 const scope = 'build'
 
@@ -35,8 +39,8 @@ async function resolveRecord({
   loaded: LoadedRecord
   downloads: Map<string, Downloads>
   stars: Map<string, number | undefined>
-}): Promise<RegistryDetail | null> {
-  const { manifest, authorOverview, options, guides, problems } = await checkArtifact({ record, registryOverview, verifyPin: false, scope })
+}): Promise<BuiltDetail | null> {
+  const { manifest, authorOverview, options, guides, changes, problems } = await checkArtifact({ record, registryOverview, verifyPin: false, scope })
   for (const problem of problems) console.warn(`[${scope}] ⚠ ${record.id}: ${problem}`)
   if (!manifest) {
     console.warn(`[${scope}] ⚠ ${record.id}: ${artifactLabel(record.artifact)} ships no valid kubb-extension.json, left out of the index`)
@@ -57,6 +61,7 @@ async function resolveRecord({
     publishedAt: record.publishedAt,
     reviewedAt: record.reviewedAt,
     ...(Object.values(stats).some((value) => value !== undefined) && { stats }),
+    ...(changes && { changes }),
     overview: authorOverview ?? registryOverview,
     options,
     guides,
@@ -69,7 +74,7 @@ async function resolveRecord({
  * Records whose version ships no valid manifest are left out, with a warning. A docs problem is only
  * a warning.
  */
-export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ index: RegistryIndex; details: Array<RegistryDetail> }> {
+export async function buildRegistry(records: Array<LoadedRecord>): Promise<{ index: RegistryIndex; details: Array<BuiltDetail> }> {
   console.log(`[${scope}] reading ${records.length} pinned versions…`)
   // One request per repository, since many records share one.
   const slugs = [...new Set(records.flatMap(({ record }) => repoSlug(record.repository.url) ?? []))]

@@ -25,9 +25,17 @@ export type TarFiles = { files: Map<string, string>; tooLarge: Array<string>; pa
  * hold one top-level folder (`package/`), so `wanted` gets, and the result holds, paths relative
  * to it: `package/docs/overview.md` becomes `docs/overview.md`. Links and folders are skipped.
  * When a path appears twice, the first regular copy wins. A file larger than 256 KiB is listed in
- * `tooLarge` instead of read.
+ * `tooLarge` instead of read, unless `truncated` accepts it: then its first 256 KiB are read.
  */
-export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: (path: string) => boolean }): TarFiles {
+export function readTarFiles({
+  tar,
+  wanted,
+  truncated = () => false,
+}: {
+  tar: Uint8Array
+  wanted: (path: string) => boolean
+  truncated?: (path: string) => boolean
+}): TarFiles {
   const files = new Map<string, string>()
   const tooLarge: Array<string> = []
   const paths = new Set<string>()
@@ -46,8 +54,9 @@ export function readTarFiles({ tar, wanted }: { tar: Uint8Array; wanted: (path: 
     if ((type === '0' || type === '') && path) paths.add(path)
     if ((type === '0' || type === '') && path && !seen.has(path) && wanted(path)) {
       seen.add(path)
-      if (size > MAX_FILE_BYTES) tooLarge.push(path)
-      if (size <= MAX_FILE_BYTES) files.set(path, decoder.decode(tar.subarray(offset, offset + size)))
+      const cut = size > MAX_FILE_BYTES && truncated(path)
+      if (size > MAX_FILE_BYTES && !cut) tooLarge.push(path)
+      if (size <= MAX_FILE_BYTES || cut) files.set(path, decoder.decode(tar.subarray(offset, offset + Math.min(size, MAX_FILE_BYTES))))
     }
     offset += Math.ceil(size / BLOCK) * BLOCK
   }
@@ -70,11 +79,13 @@ export async function fetchPackageFiles({
   pkg,
   version,
   wanted,
+  truncated,
   scope,
 }: {
   pkg: string
   version: string
   wanted: (path: string) => boolean
+  truncated?: (path: string) => boolean
   scope: string
 }): Promise<({ status: 'ok' } & TarFiles) | { status: 'error'; message: string }> {
   const packument = await fetchPackument({ pkg, scope })
@@ -88,7 +99,7 @@ export async function fetchPackageFiles({
     const bytes = await fetchBytes({ url: tarball, timeout: 60_000 })
     if (!matchesIntegrity({ bytes, integrity })) return { status: 'error', message: `${pkg}@${version}: the tarball does not match its integrity hash` }
     const tar = gunzipSync(bytes, { maxOutputLength: MAX_TARBALL_BYTES })
-    return { status: 'ok', ...readTarFiles({ tar, wanted }) }
+    return { status: 'ok', ...readTarFiles({ tar, wanted, truncated }) }
   } catch (err) {
     return { status: 'error', message: `${pkg}@${version}: ${(err as Error).message}` }
   }
