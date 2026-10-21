@@ -1,0 +1,5 @@
+feature:
+  - head-branch: ['^feat', 'feat']
+
+bug:
+  - head-branch: ['^bug', 'bug', '^fix', 'fix']
