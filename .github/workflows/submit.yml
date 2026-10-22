@@ -39,7 +39,7 @@ jobs:
 
       - name: Setup Tools
         if: steps.existing.outputs.url == ''
-        uses: kubb-labs/config/.github/setup@cd19460ad4c4993a8bb83804b5fdfed4ee1f0711 # main
+        uses: kubb-labs/config/.github/setup@343e250ace24b6ee7e9694e9e06a594aeb8e01c3 # main
         with:
           cache: 'false'
 
