@@ -165,8 +165,8 @@ settings:
 catalogs:
   default:
     '@kubb/core':
-      specifier: ^5.12.5
-      version: 5.12.5
+      specifier: ^5.12.6
+      version: 5.12.6
     '@types/node':
       specifier: 22.20.2
       version: 22.20.2
@@ -198,7 +198,7 @@ importers:
     devDependencies:
       '@kubb/core':
         specifier: 'catalog:'
-        version: 5.12.5(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))
+        version: 5.12.6(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.2
@@ -236,12 +236,12 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kubb/ast@5.12.5':
-    resolution: {integrity: sha512-N1WUZFF3TrL6lTtwa4kG/rgurCrwnLaQNzzMqEf/zG9fNWBv5NkobQWrrMiD3tad1RfmbTgQd0Yoy/z1wwvuxQ==}
+  '@kubb/ast@5.12.6':
+    resolution: {integrity: sha512-CzO8TpMF0vNCjr7P0xPTPI7E0n4yxLdEtApU4IVMiP6IuqJoh/0RDJHyK1n0iJXRTDtMywVezpfBuW/rGI/HwA==}
     engines: {node: '>=22.12'}
 
-  '@kubb/core@5.12.5':
-    resolution: {integrity: sha512-g9PolpWhKPsNDi9Biaf4xXzJZkxIgBt8hnAaXo1fZvpqaPNtdoFGnSUTFbBluiSa1Kk8Kx+fAoN2HLVq2TssJA==}
+  '@kubb/core@5.12.6':
+    resolution: {integrity: sha512-XOdN4fxhTmV/55W3x4QDHwcMyrOyZFDwdy1R8h5xc60S/R+lQkQHQ7VarXs/HOj7J68SQe3BLwCaruUaMik+aw==}
     engines: {node: '>=22.12'}
     peerDependencies:
       vitest: ^4.0.0 || ^5.0.0
@@ -1191,11 +1191,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kubb/ast@5.12.5': {}
+  '@kubb/ast@5.12.6': {}
 
-  '@kubb/core@5.12.5(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))':
+  '@kubb/core@5.12.6(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))':
     dependencies:
-      '@kubb/ast': 5.12.5
+      '@kubb/ast': 5.12.6
       tinyexec: 1.3.1
       unstorage: 1.17.6
       verkit: 0.5.0
