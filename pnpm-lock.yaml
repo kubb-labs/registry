@@ -165,8 +165,8 @@ settings:
 catalogs:
   default:
     '@kubb/core':
-      specifier: ^5.13.0
-      version: 5.13.0
+      specifier: ^5.13.1
+      version: 5.13.1
     '@types/node':
       specifier: 22.20.2
       version: 22.20.2
@@ -198,7 +198,7 @@ importers:
     devDependencies:
       '@kubb/core':
         specifier: 'catalog:'
-        version: 5.13.0(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))
+        version: 5.13.1(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.2
@@ -236,12 +236,12 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kubb/ast@5.13.0':
-    resolution: {integrity: sha512-YfdYbPsOqzl1viqdXEihiivJeJ3OhB3FElF1voupstQSmR0oeyIYy/CtBHvB0WMolZrYgD0FgqYwiuEm+GmtLA==}
+  '@kubb/ast@5.13.1':
+    resolution: {integrity: sha512-SCjozKaFNE8jHHsktbY172k0Vh6Nii/k9juUN2MFbo27UHs5SA/sghrq3/E6p2Dg6SNhMOSWsuMFC9yeeCPMSw==}
     engines: {node: '>=22.22'}
 
-  '@kubb/core@5.13.0':
-    resolution: {integrity: sha512-kTv78CVnztLTaDvP/BbV1iGTEyV1OJAR6UWDX5ogRbsFTQ0vPyn6adV/2zxYSOyeiy0T2OSi8FS001LmFOFa4A==}
+  '@kubb/core@5.13.1':
+    resolution: {integrity: sha512-dqtnC/dZV+0b3YD77huJ3iPxc0dBGcBc4OjueebC5HudFs88Z8K2fW9OrxBLNeSc9k1otKkWn9jgTgu096FU/w==}
     engines: {node: '>=22.22'}
     peerDependencies:
       vitest: ^4.0.0 || ^5.0.0
@@ -1072,11 +1072,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kubb/ast@5.13.0': {}
+  '@kubb/ast@5.13.1': {}
 
-  '@kubb/core@5.13.0(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))':
+  '@kubb/core@5.13.1(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))':
     dependencies:
-      '@kubb/ast': 5.13.0
+      '@kubb/ast': 5.13.1
       tinyexec: 1.3.1
       verkit: 0.5.0
     optionalDependencies:
