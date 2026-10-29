@@ -165,8 +165,8 @@ settings:
 catalogs:
   default:
     '@kubb/core':
-      specifier: ^5.15.0
-      version: 5.15.0
+      specifier: ^5.15.2
+      version: 5.15.2
     '@types/node':
       specifier: 22.20.2
       version: 22.20.2
@@ -198,7 +198,7 @@ importers:
     devDependencies:
       '@kubb/core':
         specifier: 'catalog:'
-        version: 5.15.0(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))
+        version: 5.15.2
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.2
@@ -236,18 +236,13 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kubb/ast@5.15.0':
-    resolution: {integrity: sha512-JzpRPDIWwInSX/kIC5ZRfBzohWqhPDXwVaXwFDyXBRdElbf2Fug675tTKbrkdaVZCj1o3bIh6JXlEIu9bmz0hQ==}
+  '@kubb/ast@5.15.2':
+    resolution: {integrity: sha512-+7YYNXwpR69TAikHFAGa20hTM3SLPvwNK3DXLH1OCXsW1Jmu7SG122lZKv+8fKcHwkyVdRA47OwwRFVuvSAl5w==}
     engines: {node: '>=22.22'}
 
-  '@kubb/core@5.15.0':
-    resolution: {integrity: sha512-4yk2E0hh6P2J9w01i+eQDn0LnShsN4cG6MCXuw4yI5AhU9LZh3N+VZEcQAajl+FIU8qT8kk8P3eZpckgb2aaQw==}
+  '@kubb/core@5.15.2':
+    resolution: {integrity: sha512-ELVfBQodnxVMgLSObqq6VynkFrw+aU07bxBZJly3GoL7VOp1r8Bx4ktTMUX1J38SJHpk2P2fqYro0Boi4BKvJQ==}
     engines: {node: '>=22.22'}
-    peerDependencies:
-      vitest: ^4.0.0 || ^5.0.0
-    peerDependenciesMeta:
-      vitest:
-        optional: true
 
   '@oxc-project/types@0.153.0':
     resolution: {integrity: sha512-jSNrRIyvPVLL5E1z/tS5zLAprosGz/FuI1PWwEOz59j3E4TTTzSpqKb/RDGqJhhW0QHYISGXxq582wGx6T11Tw==}
@@ -1072,15 +1067,13 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kubb/ast@5.15.0': {}
+  '@kubb/ast@5.15.2': {}
 
-  '@kubb/core@5.15.0(vitest@5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1)))':
+  '@kubb/core@5.15.2':
     dependencies:
-      '@kubb/ast': 5.15.0
+      '@kubb/ast': 5.15.2
       tinyexec: 1.3.1
       verkit: 0.5.0
-    optionalDependencies:
-      vitest: 5.0.3(@types/node@22.20.2)(vite@8.3.4(@types/node@22.20.2)(yaml@2.9.1))
 
   '@oxc-project/types@0.153.0': {}
 
