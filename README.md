@@ -115,7 +115,7 @@ Online, it checks that the pinned version exists and that its manifest and docs 
 | [Validate](.github/workflows/validate.yml) | Pull requests, pushes, other workflows | Checks code and records, and loads changed extensions.       |
 | [Approve](.github/workflows/approve.yml)   | An approving review                    | Stamps the approved records.                                 |
 | [Bump](.github/workflows/bump.yml)         | Mondays, plugins releases              | Opens a pull request that moves pins to the newest versions. |
-| [Deploy](.github/workflows/deploy.yml)     | Pushes to `main`, daily                | Publishes to GitHub Pages and redeploys kubb.dev.            |
+| [Deploy](.github/workflows/deploy.yml)     | Pushes to `main`, daily                | Publishes to GitHub Pages.                                   |
 
 ## Development
 
