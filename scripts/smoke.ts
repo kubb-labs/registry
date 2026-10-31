@@ -13,7 +13,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
-import { loadProblems } from './lib/smoke.ts'
+import { loadProblem } from './lib/smoke.ts'
 import type { RegistryRecord } from './lib/types.ts'
 
 // shortcut: repeats SLUG_PATTERN from lib/records.ts, which pulls in dependencies this job skips.
@@ -44,9 +44,9 @@ const entry = join(dir, 'smoke-entry.mjs')
 writeFileSync(entry, `export * from ${JSON.stringify(artifact.package)}\n`)
 const mod = await import(pathToFileURL(entry).href)
 
-const problems = loadProblems({ manifest, mod })
-if (problems.length) {
-  for (const problem of problems) console.error(problem)
+const problem = loadProblem({ manifest, mod })
+if (problem) {
+  console.error(problem)
   process.exit(1)
 }
 console.log(`${artifact.package}: ${manifest.export}() loads as ${manifest.name}`)

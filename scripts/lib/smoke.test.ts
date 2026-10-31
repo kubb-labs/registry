@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { loadProblems } from './smoke.ts'
+import { loadProblem } from './smoke.ts'
 
 const manifest = { export: 'pluginAcme', name: 'plugin-acme' }
 
-describe('loadProblems', () => {
+describe('loadProblem', () => {
   it('passes when the factory returns the manifest name', () => {
-    expect(loadProblems({ manifest, mod: { pluginAcme: () => ({ meta: { name: 'plugin-acme' } }) } })).toStrictEqual([])
+    expect(loadProblem({ manifest, mod: { pluginAcme: () => ({ meta: { name: 'plugin-acme' } }) } })).toBeUndefined()
   })
 
   it.each([
@@ -23,6 +23,6 @@ describe('loadProblems', () => {
     ],
     ['a mismatched name', manifest, { pluginAcme: () => ({ meta: { name: 'plugin-other' } }) }, 'is `plugin-other`'],
   ])('reports %s', (_, m, mod, expected) => {
-    expect(loadProblems({ manifest: m, mod }).join()).toContain(expected)
+    expect(loadProblem({ manifest: m, mod })).toContain(expected)
   })
 })
