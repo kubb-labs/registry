@@ -1,10 +1,19 @@
 # Reviewing a registry pull request
 
-Merging a record approves one exact version, an npm version or a GitHub release's commit, for everyone who runs `kubb add`. Check each item before you approve. When an item fails, request changes on the pull request and say which item.
+Merging a record approves one exact version for everyone who runs `kubb add`. The checks cover what a script can verify. Your review covers the rest.
 
-The `Validate` check on the pull request covers the record, the dates, the version on npm or GitHub, the manifest, and the docs (see [README.md](README.md#validation)). Submit and Bump start it on the pull requests they open. Your review covers what a script cannot judge.
+## How to review
 
-The `Load changed extensions` job in `Validate` installs each changed record's version with install scripts off, in a job with no token, and checks that the manifest's `export` loads with the right `meta.name`. A pass means the package loads, not that it is safe: its own code runs during the check. Beyond that, read the package in the browser. For npm, open the **Code** tab of the pinned version: `https://www.npmjs.com/package/<package>/v/<version>?activeTab=code`. For a GitHub release, browse the pinned commit: `https://github.com/<owner>/<repo>/tree/<commit>`. Never install, build, or run the package yourself.
+1. Wait for **Validate** and **Load changed extensions** to pass. Submit and Bump start them. See [Validation](README.md#validation).
+2. Open the package code in the browser:
+   - npm: `https://www.npmjs.com/package/<package>/v/<version>?activeTab=code`
+   - GitHub release: `https://github.com/<owner>/<repo>/tree/<commit>`
+3. Work through the checklists below.
+4. If an item fails, request changes and name the item. Otherwise, approve.
+5. Merge when Validate passes on the `chore: approve records` commit.
+
+> [!WARNING]
+> Never install, build, or run the package yourself. A passing load check means the package loads, not that it is safe: its own code runs during the check.
 
 ## Listing
 
@@ -35,7 +44,7 @@ The `Load changed extensions` job in `Validate` installs each changed record's v
 
 ## Overview
 
-`docs/overview.md` is the extension's page on kubb.dev. Check each item:
+`docs/overview.md` is the extension's page on kubb.dev.
 
 - [ ] It opens with what the extension is and does, in one or two short paragraphs.
 - [ ] It explains how it works only when that is not obvious.
@@ -46,7 +55,7 @@ The `Load changed extensions` job in `Validate` installs each changed record's v
 
 ## Options and guides
 
-`docs/options.md` and `docs/guides/<id>.md` are optional. When the package ships them, read each one:
+Optional. Check `docs/options.md` and each `docs/guides/<id>.md` the package ships.
 
 - [ ] The options page documents the factory's real options, with the names and defaults the code and the manifest use.
 - [ ] Each guide solves one task, and its first paragraph says what the reader gets.
@@ -63,10 +72,11 @@ The `Load changed extensions` job in `Validate` installs each changed record's v
 
 ## Approve
 
-When every item passes, approve the pull request. The `Approve` workflow then pushes a commit that sets `reviewedAt` on each changed record to now, and `publishedAt` too on a new one, and starts `Validate` on it. The dates say when the version was approved rather than when intake or the bump wrote the record. Merge when `Validate` passes.
+Approving runs the `Approve` workflow. It pushes a commit that sets `reviewedAt` on each changed record, and `publishedAt` on a new one, then starts Validate. The dates record when the version was approved.
 
-A pull request from a fork gets no stamp commit, because its workflow token is read-only. Submissions never come from forks, since intake opens their pull requests in this repository.
+> [!NOTE]
+> Fork pull requests get no stamp commit, because their token is read-only. Submissions never come from forks.
 
 ## After merging
 
-The deploy workflow publishes the registry within minutes, and `https://kubb.dev/registry` serves it right away. The catalog on kubb.dev lists the extension after the redeploy that the workflow asks for. The weekly bump pull request moves its pin to each new `latest` version, and each of those versions needs the same review.
+Deploy publishes the registry within minutes at `https://kubb.dev/registry`, and kubb.dev lists the extension after its redeploy. Each new version the weekly bump pins needs the same review.
