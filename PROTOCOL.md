@@ -7,9 +7,8 @@ The contract between a Kubb extension registry and its clients: the Kubb CLI, Ku
 
 ## Serving rules
 
-- Documents are served as `application/json`, with CORS allowed.
-- Documents are answered directly, never through a redirect.
-- An unknown id answers 404.
+- Serve documents as `application/json`, with CORS allowed and no redirects.
+- Answer an unknown id with 404.
 
 ## `GET <base>/index.json`
 
@@ -63,7 +62,7 @@ type RegistryGuide = {
 - `overview` is the package's `docs/overview.md`. An npm version published before `docs/` may ship a root `OVERVIEW.md` instead. Without either, it is the registry's own overview, or `null`.
 - `options` is the package's `docs/options.md`, or `null`.
 - `guides` holds each `docs/guides/<id>.md`, sorted by file name, at most 50. `id` is kebab case. A version without guides has `[]`.
-- This repository always writes `options` and `guides`. A registry built before they existed leaves them out, so read a missing `options` as `null` and a missing `guides` as `[]`.
+- Read a missing `options` as `null` and a missing `guides` as `[]`. Older registries leave them out.
 - `index.json` leaves out `overview`, `options`, and `guides`.
 
 ### Render the Markdown
