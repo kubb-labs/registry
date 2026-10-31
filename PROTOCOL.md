@@ -1,14 +1,14 @@
 # Registry protocol
 
-The contract between a Kubb extension registry and its clients: the Kubb CLI, Kubb Studio, and kubb.dev. A registry is a set of static JSON documents under a base URL. Anyone can host one, for example an internal registry for a company's own plugins.
+The contract between a Kubb extension registry and its clients: the Kubb CLI, Kubb Studio, and kubb.dev. A registry is static JSON under a base URL, so anyone can host one.
 
-The default base URL is `https://kubb.dev/registry`. Point the CLI at another registry with `KUBB_REGISTRY=<base URL>`.
+> [!TIP]
+> The default base URL is `https://kubb.dev/registry`. Point the CLI at another registry with `KUBB_REGISTRY=<base URL>`.
 
 ## Serving rules
 
-- Documents are served as `application/json`, with CORS allowed.
-- Documents are answered directly, never through a redirect.
-- An unknown id answers 404.
+- Serve documents as `application/json`, with CORS allowed and no redirects.
+- Answer an unknown id with 404.
 
 ## `GET <base>/index.json`
 
@@ -35,9 +35,10 @@ type RegistryArtifact =
   | { kind: 'github'; package: string; version: string; owner: string; repo: string; tag: string; commit: string }
 ```
 
-Install an `npm` artifact as `<package>@<version>`. Install a `github` artifact as `github:<owner>/<repo>#<commit>`, never by its tag. The package sits at the repository root, `package` is the `name` in its `package.json`, and `version` is the release version that `tag` names. Skip an entry whose `artifact.kind` you do not know.
-
-`ExtensionManifest` is the content of `kubb-extension.json` ([schema](https://github.com/kubb-labs/kubb/blob/main/packages/core/schemas/kubb-extension.json), shipped in `@kubb/core`, which also exports the types). `manifest.kind` always equals `kind`. Clients ignore keys they do not know, and reject an index whose `version` is not `1`.
+- Install an `npm` artifact as `<package>@<version>`.
+- Install a `github` artifact as `github:<owner>/<repo>#<commit>`, never by its tag. `package` is the `name` in the root `package.json`, and `version` is the release that `tag` names.
+- Skip an entry whose `artifact.kind` you do not know, ignore unknown keys, and reject an index whose `version` is not `1`.
+- `manifest` is `kubb-extension.json` ([schema](https://github.com/kubb-labs/kubb/blob/main/packages/core/schemas/kubb-extension.json), with types in `@kubb/core`). `manifest.kind` always equals `kind`.
 
 ## `GET <base>/<owner>/<slug>.json`
 
@@ -61,12 +62,15 @@ type RegistryGuide = {
 - `overview` is the package's `docs/overview.md`. An npm version published before `docs/` may ship a root `OVERVIEW.md` instead. Without either, it is the registry's own overview, or `null`.
 - `options` is the package's `docs/options.md`, or `null`.
 - `guides` holds each `docs/guides/<id>.md`, sorted by file name, at most 50. `id` is kebab case. A version without guides has `[]`.
-- This repository always writes `options` and `guides`. A registry built before they existed leaves them out, so read a missing `options` as `null` and a missing `guides` as `[]`.
+- Read a missing `options` as `null` and a missing `guides` as `[]`. Older registries leave them out.
 - `index.json` leaves out `overview`, `options`, and `guides`.
 
 ### Render the Markdown
 
-All Markdown in a detail comes from the package author, so it is untrusted. Render it as plain Markdown, and escape or drop raw HTML instead of rendering it. Each guide starts with a `# Title` line and a description paragraph. The overview and options page should too, but do not rely on it. Beyond plain Markdown, these render:
+> [!WARNING]
+> All Markdown in a detail comes from the package author and is untrusted. Escape or drop raw HTML instead of rendering it.
+
+Each guide starts with a `# Title` line and a description paragraph. The overview and options page should too, but do not rely on it. Beyond plain Markdown, these render:
 
 - Code fences with a language and an optional title, such as ` ```typescript [kubb.config.ts] `.
 - The callouts `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, and `> [!WARNING]`.
@@ -80,4 +84,7 @@ The categories records may use: `Array<{ slug: string; label: string; descriptio
 
 ## Host your own registry
 
-Serve the same documents from any static host. To build them from your own records, fork this repository, replace `extensions/`, and run `pnpm build`. The output in `dist/` is the whole registry.
+1. Fork this repository.
+2. Replace `extensions/` with your own records.
+3. Run `pnpm build`.
+4. Serve `dist/` from any static host, following the serving rules above.
