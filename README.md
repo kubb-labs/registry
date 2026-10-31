@@ -124,7 +124,7 @@ Requires pnpm and Node.js 22.18 or later.
 ```sh
 pnpm install
 pnpm build       # writes dist/ from the records
-pnpm approve     # stamps changed records (the Approve workflow runs this)
+pnpm run approve # stamps changed records (the Approve workflow runs this)
 pnpm test
 pnpm typecheck
 pnpm lint
