@@ -75,7 +75,9 @@ jobs:
         env:
           BASE_REF: origin/${{ github.base_ref || 'main' }}
         run: |
-          mapfile -t files < <(git diff --name-only --diff-filter=AM "$BASE_REF"...HEAD -- 'extensions/*/*.json')
+          # Through a file, so a failing git diff fails the step instead of loading nothing.
+          git diff --name-only --diff-filter=AM "$BASE_REF"...HEAD -- 'extensions/*/*.json' > "$RUNNER_TEMP/changed"
+          mapfile -t files < "$RUNNER_TEMP/changed"
           status=0
           for file in "${files[@]}"; do
             id=${file#extensions/}

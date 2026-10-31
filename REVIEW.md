@@ -4,7 +4,7 @@ Merging a record approves one exact version, an npm version or a GitHub release'
 
 The `Validate` check on the pull request covers the record, the dates, the version on npm or GitHub, the manifest, and the docs (see [README.md](README.md#validation)). Submit and Bump start it on the pull requests they open. Your review covers what a script cannot judge.
 
-The `Load changed extensions` job in `Validate` installs each changed record's version with install scripts off, in a job with no token, and checks that the manifest's `export` loads with the right `meta.name`. Beyond that, read the package in the browser. For npm, open the **Code** tab of the pinned version: `https://www.npmjs.com/package/<package>/v/<version>?activeTab=code`. For a GitHub release, browse the pinned commit: `https://github.com/<owner>/<repo>/tree/<commit>`. Never install, build, or run the package yourself.
+The `Load changed extensions` job in `Validate` installs each changed record's version with install scripts off, in a job with no token, and checks that the manifest's `export` loads with the right `meta.name`. A pass means the package loads, not that it is safe: its own code runs during the check. Beyond that, read the package in the browser. For npm, open the **Code** tab of the pinned version: `https://www.npmjs.com/package/<package>/v/<version>?activeTab=code`. For a GitHub release, browse the pinned commit: `https://github.com/<owner>/<repo>/tree/<commit>`. Never install, build, or run the package yourself.
 
 ## Listing
 

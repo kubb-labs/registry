@@ -29,7 +29,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          # The approved commit, not the branch tip: if the branch moved, the push below is rejected.
+          ref: ${{ github.event.review.commit_id }}
           fetch-depth: 0
 
       - name: Setup Tools
@@ -37,11 +38,13 @@ jobs:
         with:
           cache: 'false'
 
-      # A re-approval after the stamp, such as one a dismissed review needs, does not stamp again.
+      # A re-approval after the stamp, such as one a dismissed review needs, does not stamp again,
+      # but it starts Validate again in case the first start failed.
       - name: Stamp and push
         run: |
           if [ "$(git log -1 --format=%s)" = "chore: approve records" ]; then
             echo "Already stamped."
+            gh workflow run validate.yml --ref "$BRANCH"
             exit 0
           fi
           pnpm approve
