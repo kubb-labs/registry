@@ -15,8 +15,10 @@ jobs:
     name: Open the review pull request
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'kubb-labs' && github.event.issue.state == 'open' && contains(github.event.issue.labels.*.name, 'submission')
+    # The template title also matches: GitHub drops template labels that do not exist in the repo.
+    if: github.repository_owner == 'kubb-labs' && github.event.issue.state == 'open' && (contains(github.event.issue.labels.*.name, 'submission') || startsWith(github.event.issue.title, 'submit:'))
     permissions:
+      actions: write
       contents: write
       pull-requests: write
       issues: write
@@ -30,6 +32,7 @@ jobs:
         id: existing
         run: |
           gh label create submission --color 0E8A16 --description "Extension submission" --force
+          gh issue edit "$ISSUE_NUMBER" --add-label submission
           url=$(gh pr list --head "submission/$ISSUE_NUMBER" --state all --json url --jq '.[0].url // ""')
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
@@ -67,6 +70,11 @@ jobs:
           title: 'feat: add ${{ steps.submit.outputs.id }}'
           body-path: ${{ runner.temp }}/submit-pr.md
           labels: submission
+
+      # Pull requests opened with the workflow token do not trigger Validate, so start it here.
+      - name: Validate the pull request
+        if: steps.pr.outcome == 'success'
+        run: gh workflow run validate.yml --ref "submission/$ISSUE_NUMBER"
 
       # Intake failures leave their own comment in COMMENT_FILE. A pull request that could not be
       # opened is reported here, so the author is never told an empty link is ready.

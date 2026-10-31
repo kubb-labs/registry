@@ -1,0 +1,56 @@
+name: Approve
+
+# Approving a pull request stamps its records as approved now (scripts/approve.ts), pushes that
+# commit, and starts Validate on it. Pull requests from forks get a read-only token, so they skip.
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    name: Stamp the approved records
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    if: github.event.review.state == 'approved' && github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      actions: write
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BRANCH: ${{ github.event.pull_request.head.ref }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The approved commit, not the branch tip: if the branch moved, the push below is rejected.
+          ref: ${{ github.event.review.commit_id }}
+          fetch-depth: 0
+
+      - name: Setup Tools
+        uses: kubb-labs/config/.github/setup@78a8e47fd83e12065225fad5d4e6610a85a3b70c # main
+        with:
+          cache: 'false'
+
+      # A re-approval after the stamp, such as one a dismissed review needs, does not stamp again,
+      # but it starts Validate again in case the first start failed.
+      - name: Stamp and push
+        run: |
+          if [ "$(git log -1 --format=%s)" = "chore: approve records" ]; then
+            echo "Already stamped."
+            gh workflow run validate.yml --ref "$BRANCH"
+            exit 0
+          fi
+          pnpm approve
+          if git diff --quiet; then
+            exit 0
+          fi
+          git commit -am "chore: approve records"
+          git push origin "HEAD:$BRANCH"
+          gh workflow run validate.yml --ref "$BRANCH"

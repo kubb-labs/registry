@@ -12,12 +12,41 @@ Each record pins one npm version, or one GitHub release and its commit. Merging 
 
 ## Submit an extension
 
-1. Publish the package to npm with `kubb-extension.json` and a `docs/` folder at the package root. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin) and [Extension docs](https://kubb.dev/docs/5.x/reference/kit/extension-docs).
-2. Open a [submission issue](https://github.com/kubb-labs/registry/issues/new?template=submit-extension.yml) with the npm package name, its npmjs.com page, or its GitHub URL. Tick the categories that fit, main one first.
-3. Intake opens a review pull request that pins the version you gave, or npm `latest`. Intake lists any problems with the manifest or the docs in that pull request for the reviewer.
-4. A maintainer reviews the package against [REVIEW.md](REVIEW.md), runs `pnpm approve`, and merges.
+Anyone can submit a Kubb plugin, adapter, or parser. After a maintainer approves it, the extension is listed on [kubb.dev/extensions](https://kubb.dev/extensions) and in Kubb Studio, and users can install it with `kubb add`.
 
-Editing the issue reruns intake until the review pull request exists.
+### Before you submit
+
+Check that your package meets these requirements. A maintainer checks the same list in [REVIEW.md](REVIEW.md).
+
+- The package is published on npm. A package that is not on npm can use a GitHub release instead, see [From GitHub](#from-github).
+- `kubb-extension.json` sits at the package root and names the factory users call, such as `pluginGraphql`. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin).
+- `docs/overview.md` describes what the extension does. `docs/options.md` and `docs/guides/` are optional. See [Extension docs](https://kubb.dev/docs/5.x/reference/kit/extension-docs).
+- `package.json` lists `kubb` or `@kubb/core` as a peer dependency, and its `repository` field points to the GitHub repository.
+- You own that GitHub repository, or you are a member of the organization that owns it.
+- The package has no install scripts, or they do only what the overview says.
+
+### Open a submission issue
+
+Open a [submission issue](https://github.com/kubb-labs/registry/issues/new?template=submit-extension.yml) and fill in the form:
+
+- **Source**: where the package lives. Use one of these formats:
+
+  | You have                                 | Enter                                                             |
+  | ---------------------------------------- | ----------------------------------------------------------------- |
+  | An npm package (pins npm `latest`)       | `@acme/kubb-plugin-graphql`                                       |
+  | A specific npm version                   | `@acme/kubb-plugin-graphql@1.2.3`                                 |
+  | An npm page                              | `https://www.npmjs.com/package/@acme/kubb-plugin-graphql`         |
+  | A package folder in a GitHub monorepo    | `https://github.com/acme/kubb-plugins/tree/main/packages/graphql` |
+  | A GitHub release of a package not on npm | `https://github.com/acme/kubb-plugin-graphql/tree/v1.2.0`         |
+
+- **Categories**: tick every category that fits. The first tick is the main one.
+- **Notes**: anything the reviewer should know.
+
+### What happens next
+
+1. Within a few minutes, a bot comments on your issue with a link to the review pull request. If your submission has a problem, the bot comments what to fix instead. Edit the issue to try again.
+2. Checks on the pull request validate the record, the manifest, and the docs, and load your extension with install scripts off. A maintainer then reviews the package against [REVIEW.md](REVIEW.md) and asks for changes in the pull request when something is missing.
+3. After the pull request merges, the extension is listed. Each Monday, a bump pull request moves the pin to your newest version, and a maintainer reviews that version too.
 
 ### From GitHub
 
@@ -83,16 +112,17 @@ Offline, it checks every record against its schema, its path, and `categories.js
 
 A community version must ship a manifest. An official version released before manifests may omit it, but the build leaves it out of the index until a bump pins a version that ships one.
 
-Pull requests the registry workflows open do not trigger the `Validate` check. Run the online command yourself, or re-run the check from the pull request.
+Pull requests opened with the workflow token do not trigger `Validate` on their own, so Submit, Bump, and Approve start it on their branches.
 
 ## Workflows
 
 | Workflow                                   | When                                           | What it does                                                                                                                                     |
 | ------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Validate](.github/workflows/validate.yml) | Pull requests                                  | Type checks, lints, tests, and validates every record offline and the changed ones online.                                                       |
-| [Submit](.github/workflows/submit.yml)     | A `submission` issue changes                   | Writes the record and opens the review pull request.                                                                                             |
+| [Validate](.github/workflows/validate.yml) | Pull requests                                  | Type checks, lints, tests, and validates every record offline and the changed ones online. Loads the changed extensions in a job with no token.  |
+| [Submit](.github/workflows/submit.yml)     | A `submission` or `submit:` issue changes      | Writes the record and opens the review pull request.                                                                                             |
 | [Bump](.github/workflows/bump.yml)         | Mondays, and after a kubb-labs/plugins release | Opens one pull request that moves pins to npm `latest` or the latest GitHub release. A plugins release bumps only the kubb-labs/plugins records. |
 | [Deploy](.github/workflows/deploy.yml)     | Pushes to `main`, and daily                    | Publishes the build to GitHub Pages and redeploys kubb.dev.                                                                                      |
+| [Approve](.github/workflows/approve.yml)   | A maintainer approves a pull request           | Stamps the changed records as approved, pushes the commit, and starts Validate.                                                                  |
 
 ## Development
 
@@ -101,7 +131,7 @@ Requires pnpm and Node.js 22.18 or later, which runs the TypeScript scripts dire
 ```sh
 pnpm install
 pnpm build       # writes dist/ from the records and their pinned versions
-pnpm approve     # stamps the changed records as approved, before merging
+pnpm approve     # stamps the changed records as approved; the Approve workflow runs it on approval
 pnpm test
 pnpm typecheck
 pnpm lint
