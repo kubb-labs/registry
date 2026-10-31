@@ -4,7 +4,7 @@ Merging a record approves one exact version, an npm version or a GitHub release'
 
 `pnpm validate --online --changed` checks the record, the dates, the version on npm or GitHub, the manifest, and the docs (see [README.md](README.md#validation)). Bot pull requests do not trigger the `Validate` check, so run it yourself. Your review covers what a script cannot judge.
 
-The `Load the extension` job in `Submit` installs the pinned version with `--ignore-scripts`, in a job with no token, and comments on the review pull request whether the manifest's `export` loads with the right `meta.name`. Beyond that, inspect the package without running it. Read its files from the npm tarball (`npm view <package>@<version> dist.tarball`), check them against `dist.integrity`, and never run `npm install`, a build, or a lifecycle script inside it. For a GitHub release, read the archive of the pinned commit (`https://codeload.github.com/<owner>/<repo>/tar.gz/<commit>`) instead.
+The `Load changed extensions` job in `Validate` installs each changed record's version with install scripts off, in a job with no token, and checks that the manifest's `export` loads with the right `meta.name`. Beyond that, inspect the package without running it. Read its files from the npm tarball (`npm view <package>@<version> dist.tarball`), check them against `dist.integrity`, and never run `npm install`, a build, or a lifecycle script inside it. For a GitHub release, read the archive of the pinned commit (`https://codeload.github.com/<owner>/<repo>/tar.gz/<commit>`) instead.
 
 ## Listing
 

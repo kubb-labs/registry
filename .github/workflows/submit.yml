@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'kubb-labs' && github.event.issue.state == 'open' && contains(github.event.issue.labels.*.name, 'submission')
     permissions:
-      actions: write
       contents: write
       pull-requests: write
       issues: write
@@ -68,13 +67,6 @@ jobs:
           title: 'feat: add ${{ steps.submit.outputs.id }}'
           body-path: ${{ runner.temp }}/submit-pr.md
           labels: submission
-
-      # The load check runs the package, so it runs in its own workflow on the submission branch.
-      - name: Start the load check
-        if: steps.pr.outcome == 'success'
-        env:
-          ID: ${{ steps.submit.outputs.id }}
-        run: gh workflow run smoke.yml --ref "submission/$ISSUE_NUMBER" -f id="$ID"
 
       # Intake failures leave their own comment in COMMENT_FILE. A pull request that could not be
       # opened is reported here, so the author is never told an empty link is ready.

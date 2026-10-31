@@ -89,11 +89,10 @@ Pull requests the registry workflows open do not trigger the `Validate` check. R
 
 | Workflow                                   | When                                           | What it does                                                                                                                                     |
 | ------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Validate](.github/workflows/validate.yml) | Pull requests                                  | Type checks, lints, tests, and validates every record offline and the changed ones online.                                                       |
-| [Submit](.github/workflows/submit.yml)     | A `submission` issue changes                   | Writes the record, opens the review pull request, then loads the extension in a job with no token and comments the result.                       |
+| [Validate](.github/workflows/validate.yml) | Pull requests                                  | Type checks, lints, tests, and validates every record offline and the changed ones online. Loads the changed extensions in a job with no token.  |
+| [Submit](.github/workflows/submit.yml)     | A `submission` issue changes                   | Writes the record and opens the review pull request.                                                                                             |
 | [Bump](.github/workflows/bump.yml)         | Mondays, and after a kubb-labs/plugins release | Opens one pull request that moves pins to npm `latest` or the latest GitHub release. A plugins release bumps only the kubb-labs/plugins records. |
 | [Deploy](.github/workflows/deploy.yml)     | Pushes to `main`, and daily                    | Publishes the build to GitHub Pages and redeploys kubb.dev.                                                                                      |
-| [Smoke](.github/workflows/smoke.yml)       | Started by Submit on the submission branch     | Installs the pinned version with install scripts off, in a job with no token, and comments whether its factory loads.                            |
 
 ## Development
 
