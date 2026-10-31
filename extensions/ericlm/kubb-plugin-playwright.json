@@ -1,0 +1,19 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "ericlm/kubb-plugin-playwright",
+  "artifact": {
+    "kind": "npm",
+    "package": "kubb-plugin-playwright",
+    "version": "0.1.0"
+  },
+  "repository": {
+    "url": "https://github.com/Ericlm/kubb-plugin-playwright"
+  },
+  "submittedAt": "2026-10-31T20:14:46Z",
+  "submittedBy": "Ericlm",
+  "publishedAt": "2026-10-31T20:14:46Z",
+  "reviewedAt": "2026-10-31T20:14:46Z",
+  "categories": [
+    "testing"
+  ]
+}
