@@ -131,7 +131,7 @@ Requires pnpm and Node.js 22.18 or later, which runs the TypeScript scripts dire
 ```sh
 pnpm install
 pnpm build       # writes dist/ from the records and their pinned versions
-pnpm approve     # stamps the changed records as approved; the Approve workflow runs it on approval
+pnpm run approve # stamps the changed records as approved; the Approve workflow runs it on approval
 pnpm test
 pnpm typecheck
 pnpm lint
