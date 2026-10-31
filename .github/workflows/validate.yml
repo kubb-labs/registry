@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Submit, Bump, and Approve start it on their pull request branches, which pull_request skips.
+  workflow_dispatch:
 
 permissions: {}
 
@@ -43,8 +45,42 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           BASE_REF: origin/${{ github.base_ref || 'main' }}
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            pnpm validate --online --changed --base "$BASE_REF"
-          else
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
             pnpm validate
+          else
+            pnpm validate --online --changed --base "$BASE_REF"
           fi
+
+  # Installs and imports the changed records' packages, so it has no token, no secrets, and no
+  # dependency cache. Pull request caches stay scoped to the pull request.
+  smoke:
+    name: Load changed extensions
+    if: github.event_name != 'push'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.23.4'
+
+      - name: Load changed extensions
+        env:
+          BASE_REF: origin/${{ github.base_ref || 'main' }}
+        run: |
+          # Through a file, so a failing git diff fails the step instead of loading nothing.
+          git diff --name-only --diff-filter=AM "$BASE_REF"...HEAD -- 'extensions/*/*.json' > "$RUNNER_TEMP/changed"
+          mapfile -t files < "$RUNNER_TEMP/changed"
+          status=0
+          for file in "${files[@]}"; do
+            id=${file#extensions/}
+            node scripts/smoke.ts --id "${id%.json}" || status=1
+          done
+          exit "$status"

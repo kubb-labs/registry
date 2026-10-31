@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'kubb-labs'
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     steps:
@@ -42,6 +43,7 @@ jobs:
         run: pnpm bump ${{ github.event_name == 'repository_dispatch' && '--repo kubb-labs/plugins' || '' }}
 
       - name: Open the pull request
+        id: pr
         if: steps.bump.outputs.count != '0'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
@@ -51,3 +53,12 @@ jobs:
           title: 'chore: bump pinned versions'
           body-path: ${{ runner.temp }}/bump.md
           delete-branch: true
+
+      # Pull requests opened with the workflow token do not trigger Validate, so start it here.
+      - name: Validate the pull request
+        if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ steps.pr.outputs.pull-request-branch }}
+        run: gh workflow run validate.yml --ref "$BRANCH"
