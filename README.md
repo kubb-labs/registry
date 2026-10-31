@@ -45,7 +45,7 @@ Open a [submission issue](https://github.com/kubb-labs/registry/issues/new?templ
 ### What happens next
 
 1. Within a few minutes, a bot comments on your issue with a link to the review pull request. If your submission has a problem, the bot comments what to fix instead. Edit the issue to try again.
-2. A maintainer reviews the package against [REVIEW.md](REVIEW.md) and asks for changes in the pull request when something is missing.
+2. Checks on the pull request validate the record, the manifest, and the docs, and load your extension with install scripts off. A maintainer then reviews the package against [REVIEW.md](REVIEW.md) and asks for changes in the pull request when something is missing.
 3. After the pull request merges, the extension is listed. Each Monday, a bump pull request moves the pin to your newest version, and a maintainer reviews that version too.
 
 ### From GitHub
