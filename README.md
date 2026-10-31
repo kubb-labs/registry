@@ -83,7 +83,7 @@ Offline, it checks every record against its schema, its path, and `categories.js
 
 A community version must ship a manifest. An official version released before manifests may omit it, but the build leaves it out of the index until a bump pins a version that ships one.
 
-Pull requests the registry workflows open do not trigger the `Validate` check. Run the online command yourself, or re-run the check from the pull request.
+Pull requests opened with the workflow token do not trigger `Validate` on their own, so Submit, Bump, and Approve start it on their branches.
 
 ## Workflows
 
@@ -93,6 +93,7 @@ Pull requests the registry workflows open do not trigger the `Validate` check. R
 | [Submit](.github/workflows/submit.yml)     | A `submission` issue changes                   | Writes the record and opens the review pull request.                                                                                             |
 | [Bump](.github/workflows/bump.yml)         | Mondays, and after a kubb-labs/plugins release | Opens one pull request that moves pins to npm `latest` or the latest GitHub release. A plugins release bumps only the kubb-labs/plugins records. |
 | [Deploy](.github/workflows/deploy.yml)     | Pushes to `main`, and daily                    | Publishes the build to GitHub Pages and redeploys kubb.dev.                                                                                      |
+| [Approve](.github/workflows/approve.yml)   | A maintainer approves a pull request           | Stamps the changed records as approved, pushes the commit, and starts Validate.                                                                  |
 
 ## Development
 
@@ -101,7 +102,7 @@ Requires pnpm and Node.js 22.18 or later, which runs the TypeScript scripts dire
 ```sh
 pnpm install
 pnpm build       # writes dist/ from the records and their pinned versions
-pnpm approve     # stamps the changed records as approved, before merging
+pnpm approve     # stamps the changed records as approved; the Approve workflow runs it on approval
 pnpm test
 pnpm typecheck
 pnpm lint

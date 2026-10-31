@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'kubb-labs' && github.event.issue.state == 'open' && contains(github.event.issue.labels.*.name, 'submission')
     permissions:
+      actions: write
       contents: write
       pull-requests: write
       issues: write
@@ -67,6 +68,11 @@ jobs:
           title: 'feat: add ${{ steps.submit.outputs.id }}'
           body-path: ${{ runner.temp }}/submit-pr.md
           labels: submission
+
+      # Pull requests opened with the workflow token do not trigger Validate, so start it here.
+      - name: Validate the pull request
+        if: steps.pr.outcome == 'success'
+        run: gh workflow run validate.yml --ref "submission/$ISSUE_NUMBER"
 
       # Intake failures leave their own comment in COMMENT_FILE. A pull request that could not be
       # opened is reported here, so the author is never told an empty link is ready.

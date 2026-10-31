@@ -2,9 +2,9 @@
 
 Merging a record approves one exact version, an npm version or a GitHub release's commit, for everyone who runs `kubb add`. Check each item before you approve. When an item fails, request changes on the pull request and say which item.
 
-`pnpm validate --online --changed` checks the record, the dates, the version on npm or GitHub, the manifest, and the docs (see [README.md](README.md#validation)). Bot pull requests do not trigger the `Validate` check, so run it yourself. Your review covers what a script cannot judge.
+The `Validate` check on the pull request covers the record, the dates, the version on npm or GitHub, the manifest, and the docs (see [README.md](README.md#validation)). Submit and Bump start it on the pull requests they open. Your review covers what a script cannot judge.
 
-The `Load changed extensions` job in `Validate` installs each changed record's version with install scripts off, in a job with no token, and checks that the manifest's `export` loads with the right `meta.name`. Beyond that, inspect the package without running it. Read its files from the npm tarball (`npm view <package>@<version> dist.tarball`), check them against `dist.integrity`, and never run `npm install`, a build, or a lifecycle script inside it. For a GitHub release, read the archive of the pinned commit (`https://codeload.github.com/<owner>/<repo>/tar.gz/<commit>`) instead.
+The `Load changed extensions` job in `Validate` installs each changed record's version with install scripts off, in a job with no token, and checks that the manifest's `export` loads with the right `meta.name`. Beyond that, read the package in the browser. For npm, open the **Code** tab of the pinned version: `https://www.npmjs.com/package/<package>/v/<version>?activeTab=code`. For a GitHub release, browse the pinned commit: `https://github.com/<owner>/<repo>/tree/<commit>`. Never install, build, or run the package yourself.
 
 ## Listing
 
@@ -63,7 +63,9 @@ The `Load changed extensions` job in `Validate` installs each changed record's v
 
 ## Approve
 
-When every item passes, run `pnpm approve` on the pull request branch, push the commit, and merge. It sets `reviewedAt` on each changed record to now, and `publishedAt` too on a new one, so the dates say when the version was approved rather than when intake or the bump wrote the record.
+When every item passes, approve the pull request. The `Approve` workflow then pushes a commit that sets `reviewedAt` on each changed record to now, and `publishedAt` too on a new one, and starts `Validate` on it. The dates say when the version was approved rather than when intake or the bump wrote the record. Merge when `Validate` passes.
+
+A pull request from a fork gets no stamp commit, because its workflow token is read-only. Submissions never come from forks, since intake opens their pull requests in this repository.
 
 ## After merging
 
