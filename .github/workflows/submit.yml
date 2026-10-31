@@ -15,7 +15,8 @@ jobs:
     name: Open the review pull request
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'kubb-labs' && github.event.issue.state == 'open' && contains(github.event.issue.labels.*.name, 'submission')
+    # The template title also matches: GitHub drops template labels that do not exist in the repo.
+    if: github.repository_owner == 'kubb-labs' && github.event.issue.state == 'open' && (contains(github.event.issue.labels.*.name, 'submission') || startsWith(github.event.issue.title, 'submit:'))
     permissions:
       actions: write
       contents: write
@@ -31,6 +32,7 @@ jobs:
         id: existing
         run: |
           gh label create submission --color 0E8A16 --description "Extension submission" --force
+          gh issue edit "$ISSUE_NUMBER" --add-label submission
           url=$(gh pr list --head "submission/$ISSUE_NUMBER" --state all --json url --jq '.[0].url // ""')
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
