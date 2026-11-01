@@ -4,6 +4,9 @@
   </a>
 </div>
 
+> [!IMPORTANT]
+> **We are looking for maintainers.** Want to help shape Kubb? Email [kubb@kubb.dev](mailto:kubb@kubb.dev) or chat with us on [Discord](https://discord.gg/shfBFeczrm).
+
 # Kubb extension registry
 
 The reviewed list of Kubb plugins, adapters, and parsers behind [kubb.dev/extensions](https://kubb.dev/extensions), [Kubb Studio](https://kubb.studio), and `kubb add`. Each record pins one exact version. Clients read it through the [registry protocol](PROTOCOL.md).
