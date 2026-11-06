@@ -5,10 +5,10 @@ catalog:
   '@types/node': 22.20.2
   ajv: ^8.20.0
   ajv-formats: ^3.0.1
-  oxfmt: ^0.75.0
-  oxlint: ^1.90.0
+  oxfmt: ^0.76.0
+  oxlint: ^1.91.0
   typescript: ^7.0.2
-  vitest: ^5.0.5
+  vitest: ^5.1.0
   yaml: ^2.9.1
 
 minimumReleaseAge: 2880 # 48 hours, matches CI's SAFE_CHAIN_MINIMUM_PACKAGE_AGE_HOURS
