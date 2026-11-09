@@ -1,12 +1,12 @@
 allowBuilds:
 
 catalog:
-  '@kubb/core': ^5.16.0
+  '@kubb/core': ^5.16.1
   '@types/node': 22.20.2
   ajv: ^8.20.0
   ajv-formats: ^3.0.1
   oxfmt: ^0.76.0
-  oxlint: ^1.91.0
+  oxlint: ^1.92.0
   typescript: ^7.0.2
   vitest: ^5.1.0
   yaml: ^2.9.1
