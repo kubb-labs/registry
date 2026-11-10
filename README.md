@@ -18,13 +18,15 @@ The reviewed list of Kubb plugins, adapters, and parsers behind [kubb.dev/extens
 Your package needs:
 
 - A version on npm, or a [GitHub release](#from-github).
-- `kubb-extension.json` at the package root, naming the factory users call, such as `pluginGraphql`. See [Publish a plugin](https://kubb.dev/docs/5.x/how-to/publish-a-plugin).
+- `kubb-extension.json` at the package root, naming the factory users call, such as `pluginGraphql`.
 - `docs/overview.md`, plus optional `docs/options.md` and `docs/guides/`. See [Extension docs](https://kubb.dev/docs/5.x/reference/kit/extension-docs).
 - `kubb` or `@kubb/core` as a peer dependency, and a `repository` field that points to GitHub.
 - No install scripts, or only ones the overview explains.
 - A GitHub repository you own, or one owned by an organization you belong to.
 
 Reviewers check the same list in [REVIEW.md](REVIEW.md).
+
+[Submit to the registry](https://kubb.dev/docs/5.x/how-to/submit-to-the-registry) shows each file with a minimal example.
 
 ### Submit
 
