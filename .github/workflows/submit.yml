@@ -42,7 +42,7 @@ jobs:
 
       - name: Setup Tools
         if: steps.existing.outputs.url == ''
-        uses: kubb-labs/config/.github/setup@78a8e47fd83e12065225fad5d4e6610a85a3b70c # main
+        uses: kubb-labs/config/.github/setup@45aaffaaf8ab17ffdcd46cf364adc32d5c6178a1 # main
         with:
           cache: 'false'
 
@@ -62,7 +62,7 @@ jobs:
       - name: Open the pull request
         id: pr
         if: steps.submit.outcome == 'success'
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
         with:
           branch: submission/${{ github.event.issue.number }}
           add-paths: extensions/**
