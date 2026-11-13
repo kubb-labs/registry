@@ -3,7 +3,7 @@
  * `guides/<id>.md`. The docs are untrusted, so clients render them as plain Markdown with a few
  * components. These checks report what would not render.
  */
-import type { RegistryGuide } from '@kubb/core'
+import { memo, type RegistryGuide } from '@kubb/core'
 import { SLUG_PATTERN } from './records.ts'
 
 export const DOCS_OVERVIEW_FILE = 'docs/overview.md'
@@ -78,7 +78,7 @@ function syntaxFindings(content: string): SyntaxFindings {
     if (component) {
       // A component line holds attributes, such as `type="Array<string>"`, not HTML.
       const name = component[1]
-      if (name !== undefined && !COMPONENTS.has(name)) findings.components.set(name, [...(findings.components.get(name) ?? []), number])
+      if (name !== undefined && !COMPONENTS.has(name)) memo(findings.components, name, () => []).push(number)
       continue
     }
     if (HTML.test(line.replace(CODE_SPAN, ''))) findings.html.push(number)
