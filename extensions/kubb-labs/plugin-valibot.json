@@ -1,0 +1,19 @@
+{
+  "$schema": "https://kubb.dev/schemas/registry-record.json",
+  "id": "kubb-labs/plugin-valibot",
+  "artifact": {
+    "kind": "npm",
+    "package": "@kubb/plugin-valibot",
+    "version": "0.1.0"
+  },
+  "repository": {
+    "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-valibot"
+  },
+  "submittedAt": "2026-11-18T12:29:27Z",
+  "submittedBy": "stijnvanhulle",
+  "publishedAt": "2026-11-18T12:29:27Z",
+  "reviewedAt": "2026-11-18T12:29:27Z",
+  "categories": [
+    "validation"
+  ]
+}
