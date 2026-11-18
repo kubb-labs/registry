@@ -4,7 +4,7 @@
   "artifact": {
     "kind": "npm",
     "package": "@kubb/plugin-faker",
-    "version": "5.4.5"
+    "version": "5.4.7"
   },
   "repository": {
     "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-faker"
@@ -12,7 +12,7 @@
   "submittedAt": "2026-10-12T20:11:53Z",
   "submittedBy": "stijnvanhulle",
   "publishedAt": "2026-10-12T20:11:53Z",
-  "reviewedAt": "2026-11-15T18:58:39Z",
+  "reviewedAt": "2026-11-18T15:21:52Z",
   "categories": [
     "mocks"
   ]
