@@ -4,7 +4,7 @@
   "artifact": {
     "kind": "npm",
     "package": "@kubb/plugin-ky",
-    "version": "6.2.0"
+    "version": "0.1.0"
   },
   "repository": {
     "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-ky"
