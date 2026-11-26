@@ -4,7 +4,7 @@
   "artifact": {
     "kind": "npm",
     "package": "@kubb/plugin-mcp",
-    "version": "5.7.1"
+    "version": "5.9.3"
   },
   "repository": {
     "url": "https://github.com/kubb-labs/plugins/tree/main/packages/plugin-mcp"
@@ -12,7 +12,7 @@
   "submittedAt": "2026-10-12T20:11:53Z",
   "submittedBy": "stijnvanhulle",
   "publishedAt": "2026-10-12T20:11:53Z",
-  "reviewedAt": "2026-11-23T18:06:44Z",
+  "reviewedAt": "2026-11-26T19:42:53Z",
   "categories": [
     "ai"
   ]
